@@ -54,7 +54,8 @@ def _count_indels(input_file):
 
     total_deletions = [[] for x in range(len(ref_seq))]
     total_insertions = [[] for x in range(len(ref_seq))]
-   
+    cov = 0
+    
     with open("./input_data/" + input_file) as in_handle:
         reads = SimpleFastaParser(in_handle)
     
@@ -64,6 +65,7 @@ def _count_indels(input_file):
             
             read = record[1]
             start_nuc = 0
+            cov += 1
     
             for nuc in range(len(read)):
                 if nuc < start_nuc:
@@ -104,10 +106,10 @@ def _count_indels(input_file):
                             break
 
     file_name = input_file.rsplit(".", 1)[0]
-    _create_df(ref_seq, total_deletions, total_insertions, file_name)
+    _create_df(ref_seq, total_deletions, total_insertions, file_name, cov)
 
 
-def _create_df(ref_seq, total_deletions, total_insertions, file_name):
+def _create_df(ref_seq, total_deletions, total_insertions, file_name, cov):
     """processes deletion and insertions lists.
     corrects nucleotides indices 
     by original reference sequence
@@ -162,6 +164,8 @@ def _create_df(ref_seq, total_deletions, total_insertions, file_name):
 
     df_dels = pd.DataFrame.from_dict(container_del, orient='index').T
     df_ins = pd.DataFrame.from_dict(container_ins_correct, orient='index').T
+    df_cov = pd.DataFrame.from_dict({"coverage":cov}, orient='index').T
+    
     df_dels.columns = columns
     df_ins.columns = columns
 
@@ -171,6 +175,7 @@ def _create_df(ref_seq, total_deletions, total_insertions, file_name):
     writer = pd.ExcelWriter("./output_indels/" + file_name + '.xlsx')
     df_dels.to_excel(writer, "deletions")
     df_ins.to_excel(writer, "insertions")
+    df_cov.to_excel(writer, "coverage")
     
     try:
         writer.save()
