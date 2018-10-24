@@ -41,10 +41,11 @@ import os
 import pandas as pd
 from collections import OrderedDict
 from time import time
-from Bio.SeqIO.FastaIO import SimpleFastaParser # low level fast fasta parser
+from Bio.SeqIO.FastaIO import SimpleFastaParser  # low level fast fasta parser
 
 
 FILE_COUNTER = 0
+
 
 def _count_indels(input_file):
     """counts deletions and insertions,
@@ -55,7 +56,7 @@ def _count_indels(input_file):
     at the insertion sites)
     """
     nucleotides = ["A", "T", "G", "C"]
-    
+
     # low level parser returns tuple of id and sequence
     with open("./input_data/" + input_file) as in_handle:
         for title, seq in SimpleFastaParser(in_handle):
@@ -66,32 +67,32 @@ def _count_indels(input_file):
     total_deletions = [[] for x in range(len(ref_seq))]
     total_insertions = [[] for x in range(len(ref_seq))]
     cov = 0
-    
+
     with open("./input_data/" + input_file) as in_handle:
         reads = SimpleFastaParser(in_handle)
-    
+
         for record in reads:
             if record[0] == ref_seq_id:
                 continue
-            
+
             read = record[1]
             start_nuc = 0
             cov += 1
-    
+
             for nuc in range(len(read)):
                 if nuc < start_nuc:
                     continue
-    
+
                 elif ref_seq[nuc] in nucleotides and read[nuc] in nucleotides:
                     continue
-    
+
                 elif ref_seq[nuc] == read[nuc]:
                     continue
-    
+
                 # counting deletion length
                 elif ref_seq[nuc] in nucleotides and read[nuc] == "-":
                     deletions_counter = 0
-    
+
                     for nuc_del in range(nuc + 1, len(read)):
                         if read[nuc_del] == "-" and ref_seq[nuc_del] in nucleotides:
                             deletions_counter += 1
@@ -101,11 +102,11 @@ def _count_indels(input_file):
                             start_nuc = nuc_del
                             total_deletions[nuc].append(deletions_counter + 1)
                             break
-    
+
                 # counting insertion length
                 elif ref_seq[nuc] == "-" and read[nuc] in nucleotides:
                     insertion_counter = 0
-    
+
                     for nuc_ins in range(nuc + 1, len(read)):
                         if ref_seq[nuc_ins] == "-" and read[nuc_ins] in nucleotides:
                             insertion_counter += 1
@@ -116,8 +117,7 @@ def _count_indels(input_file):
                             total_insertions[nuc].append(insertion_counter + 1)
                             break
 
-    file_name = input_file.rsplit(".", 1)[0]
-    _create_df(ref_seq, total_deletions, total_insertions, file_name, cov)
+    return ref_seq, total_deletions, total_insertions, cov
 
 
 def _create_df(ref_seq, total_deletions, total_insertions, file_name, cov):
@@ -128,7 +128,7 @@ def _create_df(ref_seq, total_deletions, total_insertions, file_name, cov):
     creates pandas DataFrames, 
     writes them into excel spreadsheets
     """
-    ref_raw = ref_seq  
+    ref_raw = ref_seq
     # adding indices to the nucleotides, by ref with gaps
     ref_indexed = list(zip(ref_raw, range(len(ref_raw))))
     ref_dels = [x for x in ref_indexed if x[0] != "-"]  # removing gaps
@@ -175,43 +175,39 @@ def _create_df(ref_seq, total_deletions, total_insertions, file_name, cov):
 
     df_dels = pd.DataFrame.from_dict(container_del, orient='index').T
     df_ins = pd.DataFrame.from_dict(container_ins_correct, orient='index').T
-    df_cov = pd.DataFrame.from_dict({"coverage":cov}, orient='index').T
-    
+    df_cov = pd.DataFrame.from_dict({"coverage": cov}, orient='index').T
+
     df_dels.columns = columns
     df_ins.columns = columns
 
-    if not os.path.exists("./output_indels"):
-        os.mkdir("output_indels")
-
-    writer = pd.ExcelWriter("./output_indels/" + file_name + '.xlsx')
-    df_dels.to_excel(writer, "deletions")
-    df_ins.to_excel(writer, "insertions")
-    df_cov.to_excel(writer, "coverage")
-    
-    try:
-        writer.save()
-        global FILE_COUNTER
-        FILE_COUNTER += 1
-        _get_current_time()
-        print("file '{0}' processing finished at: {1} \n".format(
-        file_name, _get_current_time()))
-    except PermissionError as e:
-        print(
-            """
-        Houston, we have a problem...
-        ---------
-        It seems that excel spreadsheet '{0}' that was going to be rewritten 
-        is open in excel. To process the corresponding 'fasta' file, rerun the script
-        Now this file is skipped
-        ---------
-        """.format(file_name))
+    return df_dels, df_ins, df_cov
 
 
 def _get_current_time():
     """just returns time stamp
     """
-    time_stamp = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
+    time_stamp = datetime.datetime.fromtimestamp(
+        time()).strftime('%Y-%m-%d %H:%M:%S')
     return time_stamp
+
+
+def _save_df(df_dels, df_ins, df_cov, file_name):
+    """saves dataframes into an excel spreadsheet
+    """
+    if not os.path.exists("./output_indels"):
+        os.mkdir("output_indels")
+
+    file_name = file_name.rsplit(".", 1)[0]
+    writer = pd.ExcelWriter("./output_indels/" + file_name + '.xlsx')
+    df_dels.to_excel(writer, "deletions")
+    df_ins.to_excel(writer, "insertions")
+    df_cov.to_excel(writer, "coverage")
+
+    writer.save()
+    global FILE_COUNTER
+    FILE_COUNTER += 1
+    print("file '{0}' processing finished at: {1} \n".format(file_name,
+                                                             _get_current_time()))
 
 
 def _show_report(total_time):
@@ -221,7 +217,7 @@ def _show_report(total_time):
     hours = total_time // 3600
     minutes = (total_time % 3600) // 60
     seconds = total_time % 60
-    
+
     total_files = FILE_COUNTER
 
     print("""
@@ -237,38 +233,59 @@ def _show_report(total_time):
     
     """.format(total_files, hours, minutes, int(seconds), _get_current_time()))
     FILE_COUNTER = 0
-    
-    
 
-def run_count_indels():
-    """main functions
+
+def main():
+    """main function
     """
     start_time = time()
-    
+
     print("""
     ---------------
     job started at {0} ...
     ---------------
     """.format(_get_current_time()))
-    
+
     extensions = ["fasta", "fa", "fas"]
     if os.path.exists("./input_data"):
         input_files = os.listdir("./input_data")
+        input_files = [f for f in input_files if f.rsplit(".", 1)[-1] in extensions]
 
         for f in input_files:
-            if os.path.isdir("./input_data/" + f):
-                print("""warning: please, don't put folders into the 'input_data' folder
-                I believe this is a folder: '{0}':""".format(f) + "\n")
-            elif f.rsplit(".", 1)[-1] in extensions:
-                print("processing file '{}'".format(f))
-                _count_indels(f)
-            else:
-                print(
-                    "warning: item '{0}' isn't a fasta file. it won't be processed\n".format(f))
-        else:
-            finish_time = time()
-            total_time = finish_time - start_time
-            _show_report(total_time)
+
+            print("processing file '{}'".format(f))
+            
+            try:
+                ref_seq, total_dels, total_ins, cov = _count_indels(f)
+            except PermissionError as permerr:
+                print("""
+                      warning: It seems that the file'{0}' is open in some other 
+                      application which doesn't allow it to be processed
+                      Now this file is skipped
+                       """.format(f))
+            try:
+                df_dels, df_ins, df_cov = _create_df(ref_seq, total_dels,
+                                                 total_ins, f, cov)
+            except ValueError as valerr:
+                print("""
+                      warning: it seems that the file {0}
+                      has no reference sequence as the first record. 
+                      please, check it out
+                      the file will be skipped. error: {1}
+                      """.format(f, valerr))
+            try:
+                _save_df(df_dels, df_ins, df_cov, f)
+            except PermissionError as permerr:
+                print("""
+                      warning: It seems that excel spreadsheet '{0}' is open in excel.
+                      To process the corresponding 'fasta' file, rerun the script
+                      now this file is skipped. error: {1}
+                      """.format(f, permerr))
+                
+        finish_time = time()
+        total_time = finish_time - start_time
+        _show_report(total_time)
+    
     else:
         os.mkdir("input_data")
         print(
@@ -285,4 +302,4 @@ def run_count_indels():
 
 
 if __name__ == "__main__":
-    run_count_indels()
+    main()

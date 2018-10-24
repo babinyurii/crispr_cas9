@@ -23,9 +23,10 @@ import numpy as np
 import pandas as pd
 import os
 import seaborn as sns
-sns.set()
+sns.set(font_scale=1.2)
 from collections import OrderedDict
 from time import time
+from xlrd import XLRDError
 
 
 FILE_COUNTER = 0
@@ -35,7 +36,7 @@ def _get_coverage(file_name):
     """takes out coverage value from
     excel file.
     """
-    df_cov = pd.read_excel(file_name, 2)
+    df_cov = pd.read_excel("./output_indels/" + file_name, "coverage")
     cov = int(df_cov["coverage"])
     return cov
 
@@ -48,61 +49,60 @@ def _get_current_time():
     return time_stamp
 
 
-def _create_matrix(file_name):
+def _create_matrix(file_name, indel):
     """
     creates matrix (length of indel, position) = number of such indels
     """
-
-    cov = _get_coverage("./output_indels/" + file_name)
-
-    indel_type = ["deletions", "insertions"]
-
     # creating matrix of rows:length of indel, columns:position in the sequence
-    for indel in indel_type:
-        df_indels = pd.read_excel(
-            "./output_indels/" + file_name, sheet_name=indel)
+    df_indels = pd.read_excel("./output_indels/" + file_name, sheet_name=indel)
 
-        container = []
+    container = []
 
-        for col in df_indels.columns:
-            indels_total = df_indels.loc[:, col].tolist()
-            lengths = list(set(indels_total))
-            lengths = (x for x in lengths if x == x)  # deleting 'nan'
-            d = OrderedDict()
+    for col in df_indels.columns:
+        indels_total = df_indels.loc[:, col].tolist()
+        lengths = list(set(indels_total))
+        lengths = (x for x in lengths if x == x)  # deleting 'nan'
+        d = OrderedDict()
 
-            for length in lengths:
-                d[length] = indels_total.count(length)
-            container.append(d)
+        for length in lengths:
+            d[length] = indels_total.count(length)
+        container.append(d)
 
         indel_matrix = pd.DataFrame(container)
 
         # adding missing values to df columns with empty values
         # as we don't have all lengths of indels
         # it's for accurate plots
-        try:
-            max_col_ind = int(max(indel_matrix.columns))
-            for i in range(1, max_col_ind):
-                if i not in indel_matrix.columns:
-                    # adding missing value ('indel length') to column with empty values
-                    indel_matrix[i] = np.nan
 
-            indel_matrix = indel_matrix.T
-            indel_matrix.sort_index(axis=0, ascending=False, inplace=True)
-            indel_matrix.columns = df_indels.columns
+    max_col_ind = int(max(indel_matrix.columns))
+    for i in range(1, max_col_ind):
+        if i not in indel_matrix.columns:
+            # adding missing value ('indel length') to column with empty values
+            indel_matrix[i] = np.nan
 
-            _create_bars_percent(file_name, indel_matrix, cov, indel)
-            _create_heatmap(file_name, indel_matrix, indel)
+    indel_matrix = indel_matrix.T
+    indel_matrix.sort_index(axis=0, ascending=False, inplace=True)
+    indel_matrix.columns = df_indels.columns
 
-        # trying to catch empty excel tabs
-        except ValueError as e:
-            print("""warning: perhaps the excel tab is empty. 
-            the {0} for file {1} won't be written.
-            error: {2}""".format(indel, file_name, e))
-
-        # return indel_matrix
+    return indel_matrix
 
 
-def _create_bars_percent(file_name, indel_matrix, cov, indel):
+def _create_matrix_percent(file_name, indel_matrix, cov, indel):
+    """converts raw count value in matrix 
+    into percentage based on coverage value"""
+
+    for ind in indel_matrix.index:
+        for col in indel_matrix.columns:
+            indel_matrix.loc[ind, col] = indel_matrix.loc[ind, col] / cov * 100
+
+    writer = pd.ExcelWriter("./output_plots/" + file_name.rsplit(".", 1)[0]
+                            + '_heatmap_data_' + indel + '_percent' + '.xlsx')
+    indel_matrix.to_excel(writer)
+
+    return indel_matrix
+
+
+def _create_bars(file_name, indel_matrix, cov, indel):
     """percent reads count 
     based on coverage
     """
@@ -126,7 +126,7 @@ def _create_bars_percent(file_name, indel_matrix, cov, indel):
     plt.close()  # comment the line to show the figure in the jupyter or wherever
 
 
-def _create_heatmap(file_name, indel_matrix, indel):
+def _create_heatmap(file_name, indel_matrix, cov, indel):
 
     cmap = plt.cm.jet  # defining colormap
     cmaplist = [cmap(i) for i in range(cmap.N)]  # list of colors from jet map
@@ -135,28 +135,28 @@ def _create_heatmap(file_name, indel_matrix, indel):
 
     # here's the max value of indels in the current df
     # it's used to denote the largest value in colormap and split colormap into segments
-    largest_indel_num = indel_matrix.max()
+    #largest_indel_num = indel_matrix.max()
     # turning into int class numpy float, otherwise deprecation warning is raised
-    largest_indel_num = int(largest_indel_num.max())
+    #largest_indel_num = int(largest_indel_num.max())
 
-    fig = plt.figure(figsize=(25, 8))
-    #ax = plt.axes()
+    fig = plt.figure(figsize=(25, 18))
+    ax = sns.heatmap(indel_matrix, cmap=cmap_short, annot=False,
+                     # linewidths=1, linecolor='grey',
+                     cbar_kws={'label': indel + " percent"})
 
-    sns.heatmap(indel_matrix, cmap=cmap_short, annot=True,
-                cbar_kws={'label': indel + " count"})
+    # setting font size of the colormap label
+    ax.figure.axes[-1].yaxis.label.set_size(25)
+
     plt.yticks(list(range(1, len(indel_matrix.index) + 1)),
                list(reversed(range(1, len(indel_matrix.index) + 1))),
                fontsize=12, horizontalalignment="left")
-
     plt.xlabel("nucleotide position", fontsize=20)
     plt.ylabel("length of indel", fontsize=20)
-
-    plt.title("number and length of " + indel, fontsize=25)
-    #plt.xticks(list(range(1, len(matrix.columns) + 1)), list(range(1, len(matrix.columns) + 1)), fontsize=15)
-    # plt.show() # comment to save figure, otherwise it'll save blank file
+    plt.title("percent and length of " + indel, fontsize=25)
+    # plt.show() # comment this line to save figure, otherwise it'll save blank file
     fig.savefig("./output_plots/" + file_name.rsplit(".", 1)
                 [0] + "_heatmap_" + indel + ".png")
-    plt.close()  # comment the line to show the figure in the jupyter or wherever
+    plt.close()  # comment the line to show the figure in the jupyter
 
 
 def _show_report(total_time):
@@ -166,7 +166,6 @@ def _show_report(total_time):
     hours = total_time // 3600
     minutes = (total_time % 3600) // 60
     seconds = total_time % 60
-
     total_files = FILE_COUNTER
 
     print("""
@@ -184,7 +183,7 @@ def _show_report(total_time):
     FILE_COUNTER = 0
 
 
-def run_create_plots():
+def main():
     """main functions
     """
     start_time = time()
@@ -195,35 +194,58 @@ def run_create_plots():
     ---------------
     """.format(_get_current_time()))
 
+    indel_type = ["deletions", "insertions"]
+
     if os.path.exists("./output_indels"):
         input_sheets = os.listdir("./output_indels")
+        input_sheets = [
+            f for f in input_sheets if f.rsplit(".", 1)[-1] == "xlsx"]
 
         for f in input_sheets:
-            if os.path.isdir("./output_indels/" + f):
-                print("""\nwarning: please, don't put folders into the 'output_indels' folder
-                I believe this is a folder: '{0}'""".format(f) + "\n")
-            elif f.rsplit(".", 1)[-1] == "xlsx":
-                print("processing file '{}'".format(f))
+            print("\nprocessing file '{0}'".format(f))
 
-                # if spreadsheet is open in excel skip it for now
+            try:
+                cov = _get_coverage(f)
+            except (PermissionError, KeyError, XLRDError) as e:
+                print("warning: coverage can't be derived from the file")
+                continue
+
+            for indel in indel_type:
                 try:
-                    _create_matrix(f)
-                    global FILE_COUNTER
-                    FILE_COUNTER += 1
-                    print("file '{0}' processing finished at: {1} \n".format(
-                        f, _get_current_time()))
+                    indel_matrix = _create_matrix(f, indel)
+                    _create_bars(f, indel_matrix, cov, indel)
+                    matrix_percent = _create_matrix_percent(f, indel_matrix,
+                                                            cov, indel)
+                    _create_heatmap(f, matrix_percent, cov, indel)
+
                 except PermissionError as perr:
-                    print("""warning: perhaps the excel spreadsheet is open in excel. 
-                    please, close it and rerun the scrips. File {0} will be skipped.
-                    error: {1}""".format(f, perr))
+                    print("""
+                          warning: perhaps the excel spreadsheet is open in excel. 
+                          please, close it and rerun the scrips. File {0} will be skipped.
+                          error: {1}
+                          """.format(f, perr))
                 except KeyError as kerr:
-                    print("""warning: I believe the file {0} somehow is not valid. It wil be skipped. 
-                    It may be an empty excel spreadsheet, or broken file with results. 
-                    Please, check out, whether is has three tabs: 'deletions', 'insertions', 'coverage'.
-                    error: {1}""".format(f, kerr))
-            else:
-                print(
-                    "\nwarning: item '{0}' isn't a fasta file. it won't be processed\n".format(f))
+                    print("""
+                          warning: I believe the file {0} somehow is not valid. 
+                          It wil be skipped. 
+                          It may be an empty excel spreadsheet, or broken file with results. 
+                          Please, check out, whether is has three tabs:
+                          'deletions', 'insertions', 'coverage'
+                          error: {1}
+                          """.format(f, kerr))
+                except XLRDError as xlrerr:
+                    print("warning: no tab. error: {0}".format(xlrerr))
+                except ValueError as valerr:
+                    print("""
+                          warning: perhaps the excel tab "{3}" has no data.
+                          the {0} for file {1} won't be written.
+                          error: {2}.
+                          """.format(indel, f, valerr, indel))
+
+            global FILE_COUNTER
+            FILE_COUNTER += 1
+            print("file '{0}' processing finished at: {1} \n".format(
+                f, _get_current_time()))
 
         # finally after all the files were iterated through
         else:
@@ -244,4 +266,4 @@ def run_create_plots():
 
 
 if __name__ == "__main__":
-    run_create_plots()
+    main()
