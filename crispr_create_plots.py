@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 import os
 import seaborn as sns
-sns.set(font_scale=1.2)
+sns.set(font_scale=1.5)
 from collections import OrderedDict
 from time import time
 from xlrd import XLRDError
@@ -139,7 +139,7 @@ def _create_heatmap(file_name, indel_matrix, cov, indel):
     # turning into int class numpy float, otherwise deprecation warning is raised
     #largest_indel_num = int(largest_indel_num.max())
 
-    fig = plt.figure(figsize=(25, 18))
+    fig = plt.figure(figsize=(25, 12))
     ax = sns.heatmap(indel_matrix, cmap=cmap_short, annot=False,
                      # linewidths=1, linecolor='grey',
                      cbar_kws={'label': indel + " percent"})
