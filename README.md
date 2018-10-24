@@ -4,3 +4,8 @@ scripts to process the data for guys from research group dealing with crispr/cas
 
 'crispr_create_plots.py' uses the output of the 'count_indels.py' script and makes plots and spreadsheets containg the percentage of eash indel and its position according to the reference sequence
 
+The example of output file. Here are all the deletion found in mapping irrespective of their length: 
+![bars](example_output/dels_bars.png)
+
+And heatmap which shows both percent of indel and its length:
+![heatmap](example_output/dels_heatmap.png)
