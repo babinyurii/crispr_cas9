@@ -1,4 +1,4 @@
-The scripts `crispr_count_indels.py` and `crispr_create_plots.py` are used to process the data for guys from research group dealing with crispr/cas9 
+The scripts `crispr_count_indels.py` and `crispr_create_plots.py` are used to process the deep sequencing data.
 
 `crispr_count_indels.py` counts exact number of insertions and deletions in fasta file which is the result of reads mapping onto the reference sequence. It creates xlsx spreadsheets with the raw count.
 
