@@ -94,11 +94,21 @@ def _count_indels(input_file):
                     deletions_counter = 0
 
                     for nuc_del in range(nuc + 1, len(read)):
-                        if read[nuc_del] == "-" and ref_seq[nuc_del] in nucleotides:
+                        # deletion goes on
+                        if ref_seq[nuc_del] in nucleotides and read[nuc_del] == "-":
                             deletions_counter += 1
-                        elif read[nuc_del] == "-" and ref_seq[nuc_del] == "-":
+                        # skip if gap is both in ref and read
+                        # as it means insertion somewhere downstream the file
+                        elif ref_seq[nuc_del] == "-" and read[nuc_del] == "-":
                             continue
-                        elif read[nuc_del] in nucleotides or read[nuc_del] in nucleotides and ref_seq[nuc_del] in nucleotides:
+                        # deletion ends var 1 : both ref and read are in nucleotides
+                        elif ref_seq[nuc_del] in nucleotides and read[nuc_del] in nucleotides:
+                            start_nuc = nuc_del
+                            total_deletions[nuc].append(deletions_counter + 1)
+                            break
+                        # deletion ends var 2 : ref seq has a gap and read in nucleotides,
+                        # which is an insertion, not a deletion
+                        elif ref_seq[nuc_del] == "-" and read[nuc_del] in nucleotides:
                             start_nuc = nuc_del
                             total_deletions[nuc].append(deletions_counter + 1)
                             break
@@ -108,11 +118,21 @@ def _count_indels(input_file):
                     insertion_counter = 0
 
                     for nuc_ins in range(nuc + 1, len(read)):
+                        # insertion goes on
                         if ref_seq[nuc_ins] == "-" and read[nuc_ins] in nucleotides:
                             insertion_counter += 1
+                        # skip if gap is both in ref and read
+                        #it means insertions somewhere downstream the file
                         elif read[nuc_ins] == "-" and ref_seq[nuc_ins] == "-":
                             continue
-                        elif ref_seq[nuc_ins] in nucleotides or read[nuc_del] in nucleotides and ref_seq[nuc_ins] in nucleotides:
+                        # insertions end var 1 : both ref and read are in nucleotides
+                        elif ref_seq[nuc_ins] in nucleotides and read[nuc_ins] in nucleotides:
+                            start_nuc = nuc_ins
+                            total_insertions[nuc].append(insertion_counter + 1)
+                            break
+                        # insertion end var 2 : ref seq is in nucleotides, 
+                        # and read has a gap, which is a deletion, not a insertion
+                        elif ref_seq[nuc_ins] in nucleotides and read[nuc_ins] == "-":
                             start_nuc = nuc_ins
                             total_insertions[nuc].append(insertion_counter + 1)
                             break
