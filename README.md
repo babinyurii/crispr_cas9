@@ -1,4 +1,4 @@
-`crispr_count_indels.py` counts exact number of insertions and deletions in fasta file which is the result of reads mapping onto the reference sequence.  The script creates xlsx spreadsheets with the raw count.
+`crispr_count_indels.py` counts exact number of insertions and deletions in fasta alignment which is the result of reads mapping onto the reference sequence.  The script creates xlsx spreadsheets with the raw count.
 
 `crispr_create_plots.py` uses the output of the `count_indels.py` script and constructs plots and spreadsheets containg the percentage of eash indel and its position according to the reference sequence
 
