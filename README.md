@@ -7,3 +7,10 @@ The example of output file. Here are all the deletions found in mapping irrespec
 
 And heatmap which shows both percent of indels and their lengths:
 ![heatmap](example_output/dels_heatmap.png)
+
+The script was used to process sequnce data for the article by Kostyushev et al., (2019)
+
+**reference:**
+1. Orthologous CRISPR/Cas9 systems for specific and efficient degradation of covalently closed
+circular DNA of hepatitis B virus. Dmitry Kostyushev, Sergey Brezgin, Anastasiya Kostyusheva, Dmitry Zarifyan, Irina
+Goptar, Vladimir Chulanov. Cellular and Molecular Life Sciences (accepted)
