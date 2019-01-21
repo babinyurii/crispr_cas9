@@ -1,3 +1,19 @@
+# crispr_cas9
+`crispr_cas9` contains two scripts that are used for NGS data analysis by HBV crispr/cas9 research group. 
+
+## Requirements
+- Python 3
+- Biopython
+- matplotlib
+- pandas
+
+## Installation
+The package is not avialable now via `pip`. So, just download and unpack it.
+
+## Description
+This script takes fasta alignment as an input. The input file is the result of deep sequencing reads mapping onto the reference sequence and is imported from the Geneious software.
+
+
 `crispr_count_indels.py` counts exact number of insertions and deletions in fasta alignment which is the result of reads mapping onto the reference sequence.  The script creates xlsx spreadsheets with the raw count.
 
 `crispr_create_plots.py` uses the output of the `count_indels.py` script and constructs plots and spreadsheets containg the percentage of eash indel and its position according to the reference sequence
