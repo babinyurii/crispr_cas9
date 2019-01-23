@@ -42,9 +42,8 @@ import pandas as pd
 from collections import OrderedDict
 from time import time
 from Bio.SeqIO.FastaIO import SimpleFastaParser  # low level fast fasta parser
-
-
-FILE_COUNTER = 0
+from ipywidgets import IntProgress
+from IPython.display import display
 
 
 def _count_indels(input_file):
@@ -224,21 +223,15 @@ def _save_df(df_dels, df_ins, df_cov, file_name):
     df_cov.to_excel(writer, "coverage")
 
     writer.save()
-    global FILE_COUNTER
-    FILE_COUNTER += 1
-    print("file '{0}' processing finished at: {1} \n".format(file_name,
-                                                             _get_current_time()))
+   
 
-
-def _show_report(total_time):
+def _show_report(total_time, file_counter):
     """prints out very brief report 
     """
-    global FILE_COUNTER
+
     hours = total_time // 3600
     minutes = (total_time % 3600) // 60
     seconds = total_time % 60
-
-    total_files = FILE_COUNTER
 
     print("""
     
@@ -251,30 +244,31 @@ def _show_report(total_time):
     ... job finished at {4}
     ---------------
     
-    """.format(total_files, hours, minutes, int(seconds), _get_current_time()))
-    FILE_COUNTER = 0
+    """.format(file_counter, hours, minutes, int(seconds), _get_current_time()))
 
 
 def main():
     """main function
     """
     start_time = time()
-
+    file_counter = 0
+    
     print("""
     ---------------
     job started at {0} ...
     ---------------
     """.format(_get_current_time()))
-
+    
     extensions = ["fasta", "fa", "fas"]
     if os.path.exists("./input_data"):
         input_files = os.listdir("./input_data")
         input_files = [f for f in input_files if f.rsplit(".", 1)[-1] in extensions]
-
-        for f in input_files:
-
-            print("processing file '{}'".format(f))
-            
+        
+        num_files = len(input_files)
+        progress_bar = IntProgress(min=0, max=num_files, bar_style='success')
+        display(progress_bar)
+        
+        for f in input_files:            
             try:
                 ref_seq, total_dels, total_ins, cov = _count_indels(f)
             except PermissionError as permerr:
@@ -301,10 +295,13 @@ def main():
                       To process the corresponding 'fasta' file, rerun the script
                       now this file is skipped. error: {1}
                       """.format(f, permerr))
+            
+            progress_bar.value += 1
+            file_counter += 1 
                 
         finish_time = time()
         total_time = finish_time - start_time
-        _show_report(total_time)
+        _show_report(total_time, file_counter)
     
     else:
         os.mkdir("input_data")

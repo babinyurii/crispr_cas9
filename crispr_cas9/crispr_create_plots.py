@@ -27,9 +27,9 @@ sns.set(font_scale=1.5)
 from collections import OrderedDict
 from time import time
 from xlrd import XLRDError
+from ipywidgets import IntProgress
+from IPython.display import display
 
-
-FILE_COUNTER = 0
 
 
 def _get_coverage(file_name):
@@ -159,14 +159,12 @@ def _create_heatmap(file_name, indel_matrix, cov, indel):
     plt.close()  # comment the line to show the figure in the jupyter
 
 
-def _show_report(total_time):
+def _show_report(total_time, file_counter):
     """prints out very brief report 
     """
-    global FILE_COUNTER
     hours = total_time // 3600
     minutes = (total_time % 3600) // 60
     seconds = total_time % 60
-    total_files = FILE_COUNTER
 
     print("""
     
@@ -179,14 +177,14 @@ def _show_report(total_time):
     ... job finished at {4}
     ---------------
     
-    """.format(total_files, hours, minutes, int(seconds), _get_current_time()))
-    FILE_COUNTER = 0
+    """.format(file_counter, hours, minutes, int(seconds), _get_current_time()))
 
 
 def main():
     """main functions
     """
     start_time = time()
+    file_counter = 0
 
     print("""
     ---------------
@@ -201,9 +199,10 @@ def main():
         input_sheets = [
             f for f in input_sheets if f.rsplit(".", 1)[-1] == "xlsx"]
 
+        num_files = len(input_sheets)
+        progress_bar = IntProgress(min=0, max=num_files, bar_style='success')
+        display(progress_bar)
         for f in input_sheets:
-            print("\nprocessing file '{0}'".format(f))
-
             try:
                 cov = _get_coverage(f)
             except (PermissionError, KeyError, XLRDError) as e:
@@ -241,17 +240,14 @@ def main():
                           the {0} for file {1} won't be written.
                           error: {2}.
                           """.format(indel, f, valerr, indel))
-
-            global FILE_COUNTER
-            FILE_COUNTER += 1
-            print("file '{0}' processing finished at: {1} \n".format(
-                f, _get_current_time()))
+            progress_bar.value += 1
+            file_counter += 1
 
         # finally after all the files were iterated through
         else:
             finish_time = time()
             total_time = finish_time - start_time
-            _show_report(total_time)
+            _show_report(total_time, file_counter)
     else:
         print(
             """
