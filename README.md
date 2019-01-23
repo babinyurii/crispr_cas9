@@ -11,7 +11,7 @@
 ```
 pip install crispr_cas9
 ```
-
+## Usage
 ## Description
 This script takes fasta alignment as an input. The input file is the result of deep sequencing reads mapping onto the reference sequence and is imported from the Geneious software.
 
