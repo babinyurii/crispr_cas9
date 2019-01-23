@@ -1,5 +1,5 @@
 # crispr_cas9
-`crispr_cas9` contains two scripts that are used for NGS data analysis by HBV crispr/cas9 research group. 
+`crispr_cas9` contains two in-house scripts that are used for NGS data analysis by HBV crispr/cas9 research group. 
 
 ## Requirements
 - Python 3
@@ -8,7 +8,9 @@
 - pandas
 
 ## Installation
-The package is not avialable now via `pip`. So, just download and unpack it.
+```
+pip install crispr_cas9
+```
 
 ## Description
 This script takes fasta alignment as an input. The input file is the result of deep sequencing reads mapping onto the reference sequence and is imported from the Geneious software.
