@@ -9,7 +9,7 @@
 pip install crispr_cas9
 ```
 ## Usage
-`crispr_cas9` intended to be used in Jupyter Notebook. Create folder named `input_data` and put your fastas into it. Navigate into the directory which contains the `input_data` folder. Then import the package :
+`crispr_cas9` is intended to be used in Jupyter Notebook. Create folder named `input_data` and put your fastas into it. Navigate into the directory which contains the `input_data` folder. Then import the package :
 
 and run :
 ```python
