@@ -12,6 +12,22 @@
 pip install crispr_cas9
 ```
 ## Usage
+`crispr_cas9` can be used via shell or Jupyter Notebook. Create folder named `input_data` and put your fastas into it. Navigate into the directory which contains the `input_data` folder. Then import package :
+
+```python
+import crispr_cas9
+```
+and run via shell :
+```
+python -m crispr_cas9.crispr_count_indels
+python -m crispr_cas9.crispr_create_plots
+```
+or by Jupyter Notebook :
+```python
+%run -m crispr_cas9.crispr_count_indels
+%run -m crispr_cas9.crispr_create_plots
+```
+
 ## Description
 This script takes fasta alignment as an input. The input file is the result of deep sequencing reads mapping onto the reference sequence and is imported from the Geneious software.
 
