@@ -1,8 +1,5 @@
 # crispr_cas9
-`crispr_cas9` contains two in-house scripts that are used for NGS data analysis by HBV crispr/cas9 research group. The script was used to process sequence data for the work by Kostyushev et al.(2019) [1].
-
-
-
+`crispr_cas9` contains two in-house scripts that are used for NGS data analysis by HBV crispr/cas9 research group. 
 
 ## Installation
 ```
@@ -38,6 +35,9 @@ And heatmap which shows both percent of indels and their lengths:
 - numpy
 - pandas
 - seaborn
+
+
+The script was used to process sequence data for the work by Kostyushev et al.(2019) [1].
 
 **reference:**
 1. Orthologous CRISPR/Cas9 systems for specific and efficient degradation of covalently closed
