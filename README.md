@@ -1,5 +1,6 @@
 # crispr_cas9
-`crispr_cas9` contains two in-house scripts that are used for NGS data analysis by HBV crispr/cas9 research group. 
+`crispr_cas9` contains two in-house scripts that are used for NGS data analysis by HBV crispr/cas9 research group. The script was used to process sequence data for the work by Kostyushev et al.(2019)
+
 
 
 
@@ -29,8 +30,6 @@ The example of output file. Here are all the deletions found irrespective of the
 
 And heatmap which shows both percent of indels and their lengths:
 ![heatmap](example_output/dels_heatmap.png)
-
-The script was used to process sequence data for the work by Kostyushev et al.(2019)
 
 ## Requirements
 - Python 3
