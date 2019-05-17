@@ -46,6 +46,12 @@ from ipywidgets import IntProgress
 from IPython.display import display
 
 
+# crazy _count_indels() is the result of fast legacy rewriting
+#TODO
+# 1. split into several functions like: count_deletion_len(), count_insertion_len()
+# 2. revise logic. maybe it could be done clearer
+# 3. extracting reference sequence into separate functions
+# 4. rename vars. f.e. nuc is not nucleotide, its nucleotide position counter actually
 def _count_indels(input_file):
     """counts deletions and insertions,
     collects them into nested lists.
@@ -138,7 +144,9 @@ def _count_indels(input_file):
 
     return ref_seq, total_deletions, total_insertions, cov
 
-
+#TODO
+# revise the logic. it's rather awkward, long and complicated 
+# because of position shifting. 
 def _create_df(ref_seq, total_deletions, total_insertions, file_name, cov):
     """processes deletion and insertions lists.
     corrects nucleotides indices 
