@@ -184,10 +184,13 @@ def _create_df(ref_seq, total_deletions, total_insertions, file_name, cov):
     for key, value in container_ins.items():
         # if so, the position (in the ref_seq with gaps) has insertion under it
         if key[0] == "-" and value != []:
-            # adding 1 as due to the insertions and gaps real indices are shifted forward
-            insertion_counter += 1
+            
             # add insertion under the real index (in ref_seq with no gaps)
             container_ins_correct[key[1] - insertion_counter] = value
+            # adding 1 as due to the insertions which 'move' real indices forward
+            # incrementing after as first insertion is under the 'real', without 
+            # gaps index
+            insertion_counter += 1
         elif key[0] == "-" and value == []:
             insertion_counter += 1  # add 1 to counter, as gaps shift it as well
 
