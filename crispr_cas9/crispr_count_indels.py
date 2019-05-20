@@ -85,7 +85,13 @@ def _count_indels(input_file):
             cov += 1
 
             for nuc in range(len(read)):
-                if nuc < start_nuc:
+                
+                # if the nucleotide to slice from is the last
+                # and the indel is over, we must stop
+                if start_nuc == len(ref_seq) - 1:
+                    break
+                
+                elif nuc < start_nuc:
                     continue
 
                 elif ref_seq[nuc] in nucleotides and read[nuc] in nucleotides:
@@ -93,30 +99,49 @@ def _count_indels(input_file):
 
                 elif ref_seq[nuc] == read[nuc]:
                     continue
-
+                
+                #########################
+                # handling deletion under the last nucleotide
+                elif ref_seq[nuc] in nucleotides and read[nuc] == "-" and \
+                    nuc == len(read) - 1:
+                        total_deletions[nuc].append(1)
+                        break
+                #####################
+                    
                 # counting deletion length
                 elif ref_seq[nuc] in nucleotides and read[nuc] == "-":
-                    deletions_counter = 0
+                    deletions_counter = 1
 
                     for nuc_del in range(nuc + 1, len(read)):
+                        
+                        ##############
+                        if ref_seq[nuc_del] in nucleotides and read[nuc_del] == "-" and \
+                        nuc_del == len(ref_seq) - 1:
+                            start_nuc = nuc_del
+                            total_deletions[nuc].append(deletions_counter + 1)
+                            break
+                        ##################
+
                         # deletion goes on
-                        if ref_seq[nuc_del] in nucleotides and read[nuc_del] == "-":
+                        elif ref_seq[nuc_del] in nucleotides and read[nuc_del] == "-":
                             deletions_counter += 1
                         # skip if gap is both in ref and read
                         # as it means insertion somewhere downstream the file
                         elif ref_seq[nuc_del] == "-" and read[nuc_del] == "-":
                             continue
+                        
                         # deletion ends var 1 : both ref and read are in nucleotides
                         elif ref_seq[nuc_del] in nucleotides and read[nuc_del] in nucleotides:
-                            start_nuc = nuc_del
-                            total_deletions[nuc].append(deletions_counter + 1)
+                            start_nuc = nuc_del 
+                            total_deletions[nuc].append(deletions_counter)
                             break
                         # deletion ends var 2 : ref seq has a gap and read in nucleotides,
                         # which is an insertion, not a deletion
                         elif ref_seq[nuc_del] == "-" and read[nuc_del] in nucleotides:
-                            start_nuc = nuc_del
-                            total_deletions[nuc].append(deletions_counter + 1)
+                            start_nuc = nuc_del 
+                            total_deletions[nuc].append(deletions_counter)
                             break
+                    
 
                 # counting insertion length
                 elif ref_seq[nuc] == "-" and read[nuc] in nucleotides:
