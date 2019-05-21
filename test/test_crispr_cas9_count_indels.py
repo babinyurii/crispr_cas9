@@ -21,7 +21,10 @@ def test_count_indels_single_del_from_head():
     """single deletions over the whole ref_seq
     no insertions"""
     ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("1_dels_single_del_from_head.fasta")
-
+    
+    assert len(ref_seq) == 10
+    assert cov == 10
+    
     assert total_dels[0][0] == 1
     assert total_dels[1][0] == 1
     assert total_dels[2][0] == 1
