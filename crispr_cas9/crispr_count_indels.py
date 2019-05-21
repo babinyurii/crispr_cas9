@@ -52,6 +52,18 @@ from IPython.display import display
 # 2. revise logic. maybe it could be done clearer
 # 3. extracting reference sequence into separate functions
 # 4. rename vars. f.e. nuc is not nucleotide, its nucleotide position counter actually
+
+
+
+def _get_coverage(input_file):
+    read_counter = 0
+    with open("./input_data/" + input_file) as in_handle:
+        for record in SimpleFastaParser(in_handle):
+            read_counter += 1
+    # 1- without reference        
+    return read_counter - 1
+
+
 def _count_indels(input_file):
     """counts deletions and insertions,
     collects them into nested lists.
@@ -68,10 +80,10 @@ def _count_indels(input_file):
             ref_seq = seq
             ref_seq_id = title
             break
-
+        
+    cov = _get_coverage(input_file)
     total_deletions = [[] for x in range(len(ref_seq))]
     total_insertions = [[] for x in range(len(ref_seq))]
-    cov = 0
 
     with open("./input_data/" + input_file) as in_handle:
         reads = SimpleFastaParser(in_handle)
@@ -82,23 +94,23 @@ def _count_indels(input_file):
 
             read = record[1]
             start_nuc = 0
-            cov += 1
 
             for nuc in range(len(read)):
                 
                 # if the nucleotide to slice from is the last
                 # and the indel is over, we must stop
+                # as the stopping condition was accomplished:
                 if start_nuc == len(ref_seq) - 1:
                     break
                 
                 elif nuc < start_nuc:
                     continue
 
-                elif ref_seq[nuc] in nucleotides and read[nuc] in nucleotides:
-                    continue
+                #elif ref_seq[nuc] in nucleotides and read[nuc] in nucleotides:
+                #    continue
 
-                elif ref_seq[nuc] == read[nuc]:
-                    continue
+                #elif ref_seq[nuc] == read[nuc]:
+                #    continue
                 
                 #########################
                 # handling deletion under the last nucleotide
@@ -141,8 +153,34 @@ def _count_indels(input_file):
                             start_nuc = nuc_del 
                             total_deletions[nuc].append(deletions_counter)
                             break
-                    
+    
+    
+    with open("./input_data/" + input_file) as in_handle:
+        reads = SimpleFastaParser(in_handle)
 
+        for record in reads:
+            if record[0] == ref_seq_id:
+                continue
+
+            read = record[1]
+            start_nuc = 0
+
+            for nuc in range(len(read)):
+                
+                # if the nucleotide to slice from is the last
+                # and the indel is over, we must stop
+                if start_nuc == len(ref_seq) - 1:
+                    break
+                
+                elif nuc < start_nuc:
+                    continue
+
+                #elif ref_seq[nuc] in nucleotides and read[nuc] in nucleotides:
+                #    continue
+
+                #elif ref_seq[nuc] == read[nuc]:
+                #    continue
+                
                 # counting insertion length
                 elif ref_seq[nuc] == "-" and read[nuc] in nucleotides:
                     insertion_counter = 0

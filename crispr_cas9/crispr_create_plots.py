@@ -156,7 +156,7 @@ def _create_heatmap(file_name, indel_matrix, cov, indel):
     # plt.show() # comment this line to save figure, otherwise it'll save blank file
     fig.savefig("./output_plots/" + file_name.rsplit(".", 1)
                 [0] + "_heatmap_" + indel + ".png")
-    plt.close()  # comment the line to show the figure in the jupyter
+    plt.close(fig)  # comment the line to show the figure in the jupyter
 
 
 def _show_report(total_time, file_counter):
