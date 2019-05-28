@@ -38,8 +38,11 @@ def test_count_indels_single_del_from_head():
 
     assert df_ins.empty == True
     
+    assert df_cov["coverage"].item() == 1
+
     
     return df_dels, df_ins, df_cov
+
 
 
 def test_count_indels_insertion_ladder_forward():
@@ -61,12 +64,34 @@ def test_count_indels_insertion_ladder_forward():
     
     assert df_dels.empty == True
     
-    return df_ins
+    assert df_cov["coverage"].item() == 5
+    
+    
+    return df_dels, df_ins, df_cov
 
 
-df_ins = test_count_indels_insertion_ladder_forward()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+df_dels, df_ins, df_cov = test_count_indels_insertion_ladder_forward()
 
 print(df_ins)
+print(df_cov)
 
 
 #df_dels, df_ins, df_cov  = test_count_indels_single_del_from_head()
