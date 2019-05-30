@@ -4,7 +4,7 @@ Created on Tue May 21 18:03:12 2019
 
 @author: babin
 """
-import numpy as np
+
 import sys
 sys.path.append("..")
 
@@ -68,21 +68,6 @@ def test_count_indels_insertion_ladder_forward():
     
     
     return df_dels, df_ins, df_cov
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

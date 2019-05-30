@@ -83,7 +83,8 @@ def _create_matrix(file_name, indel):
     indel_matrix = indel_matrix.T
     indel_matrix.sort_index(axis=0, ascending=False, inplace=True)
     indel_matrix.columns = df_indels.columns
-
+    indel_matrix = indel_matrix.fillna(value=0)
+    
     return indel_matrix
 
 
@@ -99,7 +100,7 @@ def _create_matrix_percent(file_name, indel_matrix, cov, indel):
                             + '_heatmap_data_' + indel + '_percent' + '.xlsx')
     indel_matrix.to_excel(writer)
 
-    return indel_matrix
+    return indel_matrix 
 
 
 def _create_bars(file_name, indel_matrix, cov, indel):

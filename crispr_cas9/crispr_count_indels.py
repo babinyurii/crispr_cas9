@@ -113,7 +113,7 @@ def _count_indels(input_file):
                 #    continue
                 
                 #########################
-                # handling deletion under the last nucleotide
+                # handling single deletion under the last nucleotide
                 elif ref_seq[nuc] in nucleotides and read[nuc] == "-" and \
                     nuc == len(read) - 1:
                         total_deletions[nuc].append(1)
@@ -127,6 +127,8 @@ def _count_indels(input_file):
                     for nuc_del in range(nuc + 1, len(read)):
                         
                         ##############
+                        # deletions end var 0: the final nucleotide is deleted
+                        # check up length for verify
                         if ref_seq[nuc_del] in nucleotides and read[nuc_del] == "-" and \
                         nuc_del == len(ref_seq) - 1:
                             start_nuc = nuc_del
