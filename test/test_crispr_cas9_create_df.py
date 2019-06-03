@@ -8,19 +8,24 @@ Created on Tue May 21 18:03:12 2019
 import sys
 sys.path.append("..")
 
-from crispr_cas9 import crispr_count_indels
+from crispr_cas9 import count_indels
 
 
 def test_count_indels_single_del_from_head():
     """single deletions over the whole ref_seq
     no insertions"""
-    ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("13_df_dels.fasta")
+    #ref_seq, total_dels, total_ins, cov = count_indels._count_indels("13_df_dels.fasta")
     
-    df_dels, df_ins, df_cov = crispr_count_indels._create_df(ref_seq,
-                                                             total_dels,
-                                                             total_ins, 
-                                                             "13_df_dels.fasta",
-                                                             cov)
+    
+    ref_seq, ref_seq_id = count_indels._get_ref_seq("13_df_dels.fasta")
+    cov = count_indels._get_coverage("13_df_dels.fasta")
+    total_dels = count_indels._count_dels("13_df_dels.fasta", ref_seq, ref_seq_id, cov)
+    total_ins = count_indels._count_ins("13_df_dels.fasta", ref_seq, ref_seq_id, cov)
+    
+    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "13_df_dels.fasta", cov)
+    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "13_df_dels.fasta", cov)
+    df_cov = count_indels._create_df_cov(cov)
+    
     # we should use item() method to return Python scalar value
     # otherwise we'll get ValueError: The truth value of a Series is ambiguous.
     # to check up compare: 
@@ -48,13 +53,19 @@ def test_count_indels_single_del_from_head():
 def test_count_indels_insertion_ladder_forward():
     """
     """
-    ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("10_ins_ladder_forward.fasta")
+    #ref_seq, total_dels, total_ins, cov = count_indels._count_indels("10_ins_ladder_forward.fasta")
     
-    df_dels, df_ins, df_cov = crispr_count_indels._create_df(ref_seq,
-                                                             total_dels,
-                                                             total_ins, 
-                                                             "10_ins_ladder_forward.fasta",
-                                                             cov)
+    
+    ref_seq, ref_seq_id = count_indels._get_ref_seq("10_ins_ladder_forward.fasta")
+    cov = count_indels._get_coverage("10_ins_ladder_forward.fasta")
+    total_dels = count_indels._count_dels("10_ins_ladder_forward.fasta", ref_seq, ref_seq_id, cov)
+    total_ins = count_indels._count_ins("10_ins_ladder_forward.fasta", ref_seq, ref_seq_id, cov)
+    
+    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "10_ins_ladder_forward.fasta", cov)
+    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "10_ins_ladder_forward.fasta", cov)
+    df_cov = count_indels._create_df_cov(cov)
+    
+    
     assert df_ins[("A", 1)].isna().item() == True
     assert df_ins[("T", 2)].item() == 1
     assert df_ins[("G", 3)].item() == 2
@@ -73,10 +84,10 @@ def test_count_indels_insertion_ladder_forward():
 
 
 
-df_dels, df_ins, df_cov = test_count_indels_insertion_ladder_forward()
+#df_dels, df_ins, df_cov = test_count_indels_insertion_ladder_forward()
 
-print(df_ins)
-print(df_cov)
+#print(df_ins)
+#print(df_cov)
 
 
 #df_dels, df_ins, df_cov  = test_count_indels_single_del_from_head()

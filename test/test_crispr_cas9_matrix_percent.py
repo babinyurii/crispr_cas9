@@ -8,26 +8,30 @@ Created on Mon May 27 16:28:01 2019
 import sys
 sys.path.append("..")
 
-from crispr_cas9 import crispr_create_plots
-from crispr_cas9 import crispr_count_indels
+from crispr_cas9 import count_indels
+from crispr_cas9 import create_matrices
 
 
 def test_create_plots_create_matrix_deletion_raw_count():
     """
     """
-    ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("15_dels_ladder_for_matrix.fasta")
+    #ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("15_dels_ladder_for_matrix.fasta")
     
-    df_dels, df_ins, df_cov = crispr_count_indels._create_df(ref_seq,
-                                                             total_dels,
-                                                             total_ins, 
-                                                             "15_dels_ladder_for_matrix.fasta",
-                                                             cov)
+    ref_seq, ref_seq_id = count_indels._get_ref_seq("15_dels_ladder_for_matrix.fasta")
+    cov = count_indels._get_coverage("15_dels_ladder_for_matrix.fasta")
+    total_dels = count_indels._count_dels("15_dels_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
+    total_ins = count_indels._count_ins("15_dels_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
     
-    crispr_count_indels._save_df(df_dels, df_ins, df_cov, "15_dels_ladder_for_matrix.fasta")
     
-    deletion_matrix = crispr_create_plots._create_matrix("15_dels_ladder_for_matrix.xlsx", "deletions")
+    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "15_dels_ladder_for_matrix.fasta", cov)
+    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "15_dels_ladder_for_matrix.fasta", cov)
+    df_cov = count_indels._create_df_cov(cov)
+    
+    count_indels._save_df(df_dels, df_ins, df_cov, "15_dels_ladder_for_matrix.fasta")
+    
+    deletion_matrix = create_matrices._create_matrix("15_dels_ladder_for_matrix.xlsx", "deletions")
     try:
-        insertion_matrix = crispr_create_plots._create_matrix("15_dels_ladder_for_matrix.xlsx", "insertions")
+        insertion_matrix = create_matrices._create_matrix("15_dels_ladder_for_matrix.xlsx", "insertions")
     except ValueError:
         print("no insertion matrix")
         
@@ -112,19 +116,23 @@ def test_create_plots_create_matrix_deletion_raw_count():
 
 
 def test_create_plots_create_matrix_deletion_percent():
-    ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("15_dels_ladder_for_matrix.fasta")
+    #ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("15_dels_ladder_for_matrix.fasta")
     
-    df_dels, df_ins, df_cov = crispr_count_indels._create_df(ref_seq,
-                                                             total_dels,
-                                                             total_ins, 
-                                                             "15_dels_ladder_for_matrix.fasta",
-                                                             cov)
+    ref_seq, ref_seq_id = count_indels._get_ref_seq("15_dels_ladder_for_matrix.fasta")
+    cov = count_indels._get_coverage("15_dels_ladder_for_matrix.fasta")
+    total_dels = count_indels._count_dels("15_dels_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
+    total_ins = count_indels._count_ins("15_dels_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
     
-    cov = crispr_create_plots._get_coverage("15_dels_ladder_for_matrix.xlsx")
+
+    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "15_dels_ladder_for_matrix.fasta", cov)
+    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "15_dels_ladder_for_matrix.fasta", cov)
+    df_cov = count_indels._create_df_cov(cov)
     
-    deletion_matrix = crispr_create_plots._create_matrix("15_dels_ladder_for_matrix.xlsx", "deletions")
+    count_indels._save_df(df_dels, df_ins, df_cov, "15_dels_ladder_for_matrix.fasta")
+        
+    deletion_matrix = create_matrices._create_matrix("15_dels_ladder_for_matrix.xlsx", "deletions")
     
-    perc_deletion_matrix = crispr_create_plots._create_matrix_percent("15_dels_ladder_for_matrix.xlsx",
+    perc_deletion_matrix = create_matrices._create_matrix_percent("15_dels_ladder_for_matrix.xlsx",
                                                                       deletion_matrix,
                                                                       cov,
                                                                      "deletions")
@@ -210,19 +218,23 @@ def test_create_plots_create_matrix_deletion_percent():
 def test_create_plots_create_matrix_insertions_raw_count():
     """
     """
-    ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("16_ins_ladder_for_matrix.fasta")
+    #ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("16_ins_ladder_for_matrix.fasta")
     
-    df_dels, df_ins, df_cov = crispr_count_indels._create_df(ref_seq,
-                                                             total_dels,
-                                                             total_ins, 
-                                                             "16_ins_ladder_for_matrix.fasta",
-                                                             cov)
+    ref_seq, ref_seq_id = count_indels._get_ref_seq("16_ins_ladder_for_matrix.fasta")
+    cov = count_indels._get_coverage("16_ins_ladder_for_matrix.fasta")
+    total_dels = count_indels._count_dels("16_ins_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
+    total_ins = count_indels._count_ins("16_ins_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
     
-    crispr_count_indels._save_df(df_ins, df_ins, df_cov, "16_ins_ladder_for_matrix.fasta")
     
-    insertion_matrix = crispr_create_plots._create_matrix("16_ins_ladder_for_matrix.xlsx", "insertions")
+    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "16_ins_ladder_for_matrix.fasta", cov)
+    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "16_ins_ladder_for_matrix.fasta", cov)
+    df_cov = count_indels._create_df_cov(cov)
+    
+    count_indels._save_df(df_dels, df_ins, df_cov, "16_ins_ladder_for_matrix.fasta")
+    
+    insertion_matrix = create_matrices._create_matrix("16_ins_ladder_for_matrix.xlsx", "insertions")
     try:
-        deletions_matrix = crispr_create_plots._create_matrix("16_ins_ladder_for_matrix.xlsx", "insertions")
+        deletions_matrix = create_matrices._create_matrix("16_ins_ladder_for_matrix.xlsx", "insertions")
     except ValueError:
         print("no insertion matrix")
         
@@ -267,19 +279,22 @@ def test_create_plots_create_matrix_insertions_raw_count():
 
 
 def test_create_plots_create_matrix_insertions_percent():
-    ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("16_ins_ladder_for_matrix.fasta")
+    #ref_seq, total_dels, total_ins, cov = crispr_count_indels._count_indels("16_ins_ladder_for_matrix.fasta")
     
-    df_dels, df_ins, df_cov = crispr_count_indels._create_df(ref_seq,
-                                                             total_dels,
-                                                             total_ins, 
-                                                             "16_ins_ladder_for_matrix.fasta",
-                                                             cov)
+    ref_seq, ref_seq_id = count_indels._get_ref_seq("16_ins_ladder_for_matrix.fasta")
+    cov = count_indels._get_coverage("16_ins_ladder_for_matrix.fasta")
+    total_dels = count_indels._count_dels("16_ins_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
+    total_ins = count_indels._count_ins("16_ins_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
     
-    cov = crispr_create_plots._get_coverage("16_ins_ladder_for_matrix.xlsx")
+    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "16_ins_ladder_for_matrix.fasta", cov)
+    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "16_ins_ladder_for_matrix.fasta", cov)
+    df_cov = count_indels._create_df_cov(cov)
     
-    insertion_matrix = crispr_create_plots._create_matrix("16_ins_ladder_for_matrix.xlsx", "insertions")
+    count_indels._save_df(df_dels, df_ins, df_cov, "16_ins_ladder_for_matrix.fasta")
     
-    insertion_matrix_percent = crispr_create_plots._create_matrix_percent("16_ins_ladder_for_matrix.xlsx",
+    insertion_matrix = create_matrices._create_matrix("16_ins_ladder_for_matrix.xlsx", "insertions")
+    
+    insertion_matrix_percent = create_matrices._create_matrix_percent("16_ins_ladder_for_matrix.xlsx",
                                                                       insertion_matrix,
                                                                       cov,
                                                                      "insertions")
@@ -323,20 +338,20 @@ def test_create_plots_create_matrix_insertions_percent():
 
 
 # calls to have a look at the data
-insertion_matrix = test_create_plots_create_matrix_insertions_raw_count()
-print("insertion matrix: ", insertion_matrix, sep="\n")
+#insertion_matrix = test_create_plots_create_matrix_insertions_raw_count()
+#print("insertion matrix: ", insertion_matrix, sep="\n")
 
 
-insertion_matrix_percent = test_create_plots_create_matrix_insertions_percent()
-print("insertion matrix percent: ", insertion_matrix_percent, sep="\n")
+#insertion_matrix_percent = test_create_plots_create_matrix_insertions_percent()
+#print("insertion matrix percent: ", insertion_matrix_percent, sep="\n")
 
 
-deletion_matrix = test_create_plots_create_matrix_deletion_raw_count()
-print("deletion matrix: ", deletion_matrix)
+#deletion_matrix = test_create_plots_create_matrix_deletion_raw_count()
+#print("deletion matrix: ", deletion_matrix)
 
 
-deletions_matrix_percent = test_create_plots_create_matrix_deletion_percent()
-print("deletion matrix percent: ", deletions_matrix_percent)
+#deletions_matrix_percent = test_create_plots_create_matrix_deletion_percent()
+#print("deletion matrix percent: ", deletions_matrix_percent)
 
 
 
