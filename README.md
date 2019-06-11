@@ -19,9 +19,11 @@ and run :
 This script takes fasta alignment as an input. The input file is the result of deep sequencing reads mapping onto the reference sequence and is imported from the Geneious software.
 
 
-`crispr_count_indels.py` counts exact number of insertions and deletions. The script creates excel spreadsheets with the raw count.
+`count_indels.py` counts exact number of insertions and deletions. The script saves excel spreadsheets containing the raw count.
 
-`crispr_create_plots.py` uses the output of the `crispr_count_indels.py` script and constructs plots and spreadsheets containg the percentage of eash indel and its position according to the reference sequence
+`create_matrices.py` creates matrices with each entry as the number of indels of length x (row) at position y (column), and saves the matrices as excel spreadsheets.
+
+`create_plots.py` uses the output of the `create_matrices.py` script and constructs bar chart and heatmap
 
 The example of output file. Here are all the deletions found irrespective of their length: 
 ![bars](example_output/dels_bars.png)
