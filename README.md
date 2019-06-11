@@ -10,8 +10,9 @@ pip install crispr_cas9
 
 and run :
 ```python
-%run -m crispr_cas9.crispr_count_indels
-%run -m crispr_cas9.crispr_create_plots
+%run -m crispr_cas9.count_indels
+%run -m crispr_cas9.create_matrices
+%run -m crispr_cas9.create_plots
 ```
 
 ## Description
