@@ -1,5 +1,5 @@
 # crispr_cas9
-`crispr_cas9` contains two in-house scripts that are used for NGS data analysis by HBV crispr/cas9 research group. 
+`crispr_cas9` contains in-house scripts that are used for NGS data analysis by HBV crispr/cas9 research group. 
 
 ## Installation
 ```
