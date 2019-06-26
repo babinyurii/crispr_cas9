@@ -33,11 +33,11 @@ And heatmap which shows both percent of indels and their lengths:
 
 ## Requirements
 - Python 3
-- Biopython
-- matplotlib
-- numpy
-- pandas
-- seaborn
+- Biopython 1.73
+- matplotlib 2.2.2
+- numpy 1.11.3
+- pandas  0.23.0
+- seaborn 0.8.1
 
 
 The script was used to process sequence data for the work by Kostyushev et al.(2019) [1].
