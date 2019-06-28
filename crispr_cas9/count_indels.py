@@ -35,17 +35,15 @@ NOTE: to speed up the exection instead of 'SeqIO.parse()
 low level fasta parser 'SimpleFastaParser' is used 
 """
 
-
 import datetime
 import os
 import pandas as pd
-from collections import OrderedDict
 from time import time
 from Bio.SeqIO.FastaIO import SimpleFastaParser  # low level fast fasta parser
 from ipywidgets import IntProgress
 from IPython.display import display
 
-
+NUCLEOTIDES = ["A", "T", "G", "C"]
 
 
 def _get_coverage(input_file):
@@ -67,212 +65,232 @@ def _get_ref_seq(input_file):
 
 
     
-# crazy _count_indels() is the result of fast legacy rewriting
-# TODO
-# 4. rename vars. f.e. nuc is not nucleotide, its nucleotide position counter actually
+def _split_gaps_from_pairs(ref_seq, seq):
+    pairs_ref_and_seq = list(zip(ref_seq, seq))
+    pairs_gaps_cut = []
+    for i in pairs_ref_and_seq:
+        # skip gaps both in ref_seq and seq
+        # as they mean insertion donwstream the alignment
+        if i[0] == "-" and i[1] == "-":
+            continue
+        else:
+            pairs_gaps_cut.append(i)
     
-def _count_dels(input_file, ref_seq, ref_seq_id, cov):
-    """counts deletions and insertions, collects them into nested lists.
-    each nested list in the array corresponds to the position 
-    in the mapping ('raw', with gaps at the insertion sites)
+    return pairs_gaps_cut  
+
+
+
+def _split_ins_from_pairs(pairs_gaps_cut):
+    
+    pairs_ins_cut = []
+    for i in pairs_gaps_cut:
+        # skip insertions, as they shift true indexing
+        if i[0] == "-" and i[1] in NUCLEOTIDES:
+            continue
+        else:
+            pairs_ins_cut.append(i)
+    
+    return pairs_ins_cut
+    
+
+def _get_ref_array(ref_seq):
+    """creates nested list of length equal 
+    to reference sequence
+    all gaps are cut off from reference
     """
-    nucleotides = ["A", "T", "G", "C"]
-    total_deletions = [[] for x in range(len(ref_seq))]
+    splitted_ref_seq = ref_seq.split("-")
+    ref_true = "".join(splitted_ref_seq)
+    ref_array = [[] for i in ref_true]
+    
+    return ref_array
+    
 
-    with open("./input_data/" + input_file) as in_handle:
-        reads = SimpleFastaParser(in_handle)
-
-        for record in reads:
-            read = record[1]
-            start_nuc = 0
-            for nuc in range(len(read)):
-                # if the nucleotide to slice from is the last
-                # and the indel is over, we must stop
-                # as the stopping condition was accomplished:
-                if start_nuc == len(ref_seq) - 1:
+def _get_indel_start_positions(seq):
+    
+    indel_positions = []
+    indel_stop_index = 0
+    
+    for nuc_index in range(len(seq)):
+        # as we can't change index of the next item in iteration
+        # we skip nuc_index, until the indel stop index
+        if nuc_index < indel_stop_index:
+            continue
+        
+        # indel starts : "-"
+        elif seq[nuc_index] == "-":
+            indel_positions.append(nuc_index)
+            # finding end of the indel
+            for nuc_indel_index in range(nuc_index + 1, len(seq)):
+                # it count like "A------" seq
+                # considering all the gap till the end as true indel
+                if seq[nuc_indel_index] == "-" and \
+                nuc_indel_index == len(seq) -1:
+                    indel_stop_index = nuc_indel_index + 1
                     break
-
-                elif nuc < start_nuc:
+                # indel continues: "-", skip 
+                elif seq[nuc_indel_index] == "-":
                     continue
-                # handling single deletion under the last nucleotide
-                elif ref_seq[nuc] in nucleotides and read[nuc] == "-" and \
-                    nuc == len(read) - 1:
-                        total_deletions[nuc].append(1)
-                        break
-                # counting deletion length
-                elif ref_seq[nuc] in nucleotides and read[nuc] == "-":
-                    deletions_counter = 1
+                # we encounter nucleotide, so, indel ends
+                # break this inner loop, and again find next indel
+                elif seq[nuc_indel_index] in NUCLEOTIDES:
+                    indel_stop_index = nuc_indel_index
+                    break
+        
+    return indel_positions
 
-                    for nuc_del in range(nuc + 1, len(read)):  
-                        # deletions end var 0: the final nucleotide is deleted
-                        # check up length for verify
-                        if ref_seq[nuc_del] in nucleotides and read[nuc_del] == "-" and \
-                        nuc_del == len(ref_seq) - 1:
-                            start_nuc = nuc_del
-                            total_deletions[nuc].append(deletions_counter + 1)
-                            break
-                        # deletion goes on
-                        elif ref_seq[nuc_del] in nucleotides and read[nuc_del] == "-":
-                            deletions_counter += 1
-                        # skip if gap is both in ref and read
-                        # as it means insertion somewhere downstream the file
-                        elif ref_seq[nuc_del] == "-" and read[nuc_del] == "-":
-                            continue
-                        # deletion ends var 1 : both ref and read are in nucleotides
-                        elif ref_seq[nuc_del] in nucleotides and read[nuc_del] in nucleotides:
-                            start_nuc = nuc_del 
-                            total_deletions[nuc].append(deletions_counter)
-                            break
-                        # deletion ends var 2 : ref seq has a gap and read in nucleotides,
-                        # which is an insertion, not a deletion
-                        elif ref_seq[nuc_del] == "-" and read[nuc_del] in nucleotides:
-                            start_nuc = nuc_del 
-                            total_deletions[nuc].append(deletions_counter)
-                            break
-    return total_deletions
+
+
+def _count_indel_lens(seq_to_count_dels, del_start_positions):
+    
+    pos_and_len = {k : None for k in del_start_positions}
+    indel_len_counter = 0
+    
+    for pos in del_start_positions:
+         
+        for nuc_index in range(pos, len(seq_to_count_dels)):
+           
+            # catching single indel under the last nuc
+            if seq_to_count_dels[nuc_index] == "-" and \
+                nuc_index == len(seq_to_count_dels) - 1:
+                indel_len_counter += 1
+                pos_and_len[pos] = indel_len_counter
+                break   
+            
+            elif seq_to_count_dels[nuc_index] == "-":
+                indel_len_counter += 1
+            
+            # indel ends
+            elif seq_to_count_dels[nuc_index] in NUCLEOTIDES:
+                pos_and_len[pos] = indel_len_counter
+                indel_len_counter = 0
+                break
+    
+    return pos_and_len
+
+
+
+def _seq_has_gaps_only(seq):
+    
+    if all(nuc == "-" for nuc in seq):
+        result = True
+    else:
+        result = False
+    
+    return result
+
+
+
+def _write_read_into_fasta(input_file, record, writ_mode):
+    
+    if not os.path.exists("./output_ids"):
+        os.mkdir("output_ids")
+    seq_file_id_name = "output_ids/" + "seq_ids_" + input_file
+    
+    with open(seq_file_id_name, writ_mode) as handle:
+        handle.write(">" + record[0] + "\n" + record[1] + "\n")
+
+
+
+def _count_dels(input_file, ref_seq, ref_seq_id, cov):    
+    
+    total_dels = _get_ref_array(ref_seq)
+    
+    with open("./input_data/" + input_file) as in_handle:
+        
+        reads = SimpleFastaParser(in_handle)
+        for record in reads:
+            # skip first record as it's a reference
+            if record[0] == ref_seq_id:
+                _write_read_into_fasta(input_file, record, "a")
+                continue
+                
+            read = record[1]
+            pairs_gaps_cut =_split_gaps_from_pairs(ref_seq, read)
+            
+            # this step is needed for dels
+            # as insertions shift indexing forward 
+            pairs_ins_cut = _split_ins_from_pairs(pairs_gaps_cut)
+            
+            # take read, not ref - different from insertions counting
+            seq_to_count = [x[1] for x in pairs_ins_cut]
+            seq_to_count_dels = "".join(seq_to_count)
+            
+            # skip if read has noly gaps. it's not valid to count
+            if _seq_has_gaps_only(seq_to_count_dels):
+                continue
+            
+            dels_start_positions = _get_indel_start_positions(seq_to_count_dels)
+            
+            
+            dels_pos_and_lens = _count_indel_lens(seq_to_count_dels,
+                                               dels_start_positions)
+            
+            if not all(value == None for key,value in dels_pos_and_lens.items()):
+                 _write_read_into_fasta(input_file, record, "a+")
+    
+            for key, value in dels_pos_and_lens.items():
+                total_dels[key].append(value)
+                
+          
+    
+    return total_dels        
 
 
 def _count_ins(input_file, ref_seq, ref_seq_id, cov):
+        
+    total_ins = _get_ref_array(ref_seq)
     
-    nucleotides = ["A", "T", "G", "C"]
-    total_insertions = [[] for x in range(len(ref_seq))]
-
     with open("./input_data/" + input_file) as in_handle:
         reads = SimpleFastaParser(in_handle)
-
         for record in reads:
+            if record[0] == ref_seq_id:
+                continue
+
             read = record[1]
-            start_nuc = 0
+            pairs_gaps_cut =_split_gaps_from_pairs(ref_seq, read)
+            
+            # take reference, not read. different from deletions counting
+            seq_to_count = [x[0] for x in pairs_gaps_cut]
+            seq_to_count_ins = "".join(seq_to_count)
+            
+            # skip if read has noly gaps. it's not valid to count
+            if _seq_has_gaps_only(seq_to_count_ins):
+                continue
+            
+            ins_start_positions = _get_indel_start_positions(seq_to_count_ins)
+            
+            ins_pos_and_lens = _count_indel_lens(seq_to_count_ins,
+                                               ins_start_positions)
+            
+            if not all(value == None for key,value in ins_pos_and_lens.items()):
+                _write_read_into_fasta(input_file, record, "a+")
 
-            for nuc in range(len(read)):
+            correct_ins_pos_and_lens = {}
+            len_correction = 0
+            for key, value in ins_pos_and_lens.items():
+                correct_ins_pos_and_lens[key - len_correction] = value
+                len_correction += value
                 
-                # if the nucleotide to slice from is the last
-                # and the indel is over, we must stop
-                if start_nuc == len(ref_seq) - 1:
-                    break
-                
-                elif nuc < start_nuc:
-                    continue
-                
-                # counting insertion length
-                elif ref_seq[nuc] == "-" and read[nuc] in nucleotides:
-                    insertion_counter = 0
-
-                    for nuc_ins in range(nuc + 1, len(read)):
-                        # insertion goes on
-                        if ref_seq[nuc_ins] == "-" and read[nuc_ins] in nucleotides:
-                            insertion_counter += 1
-                        # skip if gap is both in ref and read
-                        #it means insertions somewhere downstream the file
-                        elif read[nuc_ins] == "-" and ref_seq[nuc_ins] == "-":
-                            continue
-                        # insertions end var 1 : both ref and read are in nucleotides
-                        elif ref_seq[nuc_ins] in nucleotides and read[nuc_ins] in nucleotides:
-                            start_nuc = nuc_ins
-                            total_insertions[nuc].append(insertion_counter + 1)
-                            break
-                        # insertion end var 2 : ref seq is in nucleotides, 
-                        # and read has a gap, which is a deletion, not a insertion
-                        elif ref_seq[nuc_ins] in nucleotides and read[nuc_ins] == "-":
-                            start_nuc = nuc_ins
-                            total_insertions[nuc].append(insertion_counter + 1)
-                            break
-
-    return total_insertions
-
+            for key, value in correct_ins_pos_and_lens.items():
+                total_ins[key].append(value)
+    
+    return total_ins        
+              
 
 def _create_df_cov(cov):
     df_cov = pd.DataFrame.from_dict({"coverage": cov}, orient='index').T
     return df_cov
 
+def _create_df(ref_seq, total_indels):
     
-def _create_df_dels(ref_seq, total_deletions, file_name, cov):
-    """processes deletion and insertions lists.
-    corrects nucleotides indices 
-    by original reference sequence
-    (indexing without gaps)
-    creates pandas DataFrames, 
-    writes them into excel spreadsheets
-    """
-    ref_raw = ref_seq
-    # adding indices to the nucleotides, by ref with gaps
-    ref_indexed = list(zip(ref_raw, range(len(ref_raw))))
-    ref_dels = [x for x in ref_indexed if x[0] != "-"]  # removing gaps
-
-    # creating 'real' string which were due to mapping
-    ref = ref_raw.split("-")
-    ref = "".join(ref)
-
-    # columns for data frames, indices start with 1
+    ref_no_gaps = ref_seq.split("-")
+    ref = "".join(ref_no_gaps)
     columns = list(zip(ref, range(1, len(ref) + 1)))
-
-    # collecting deletions
-    # index of nucleotides and array with gaps correspond to the same position
-    container_del = OrderedDict()
-    for item in ref_dels:
-        container_del[item] = total_deletions[item[1]]
+    indel_df = pd.DataFrame(total_indels).T
+    indel_df.columns = columns
     
-    df_dels = pd.DataFrame.from_dict(container_del, orient='index').T
-    df_dels.columns = columns
+    return indel_df
     
-    return df_dels
-
-# logic here is rather awkward, as insertion position should be correced 
-# because of the shift
-def _create_df_ins(ref_seq, total_insertions, file_name, cov):
-    """processes deletion and insertions lists.
-    corrects nucleotides indices 
-    by original reference sequence
-    (indexing without gaps)
-    creates pandas DataFrames, 
-    writes them into excel spreadsheets
-    """
-    ref_raw = ref_seq
-    # adding indices to the nucleotides, by ref with gaps
-    ref_indexed = list(zip(ref_raw, range(len(ref_raw))))
-
-    # creating 'real' string which were due to mapping
-    ref = ref_raw.split("-")
-    ref = "".join(ref)
-
-    # columns for data frames, indices start with 1
-    columns = list(zip(ref, range(1, len(ref) + 1)))
-
-    container_ins = OrderedDict()
-    for item in ref_indexed:
-        container_ins[item] = total_insertions[item[1]]
-    # taking only the positions with insertions
-    container_ins_correct = OrderedDict()
-    insertion_counter = 0
-
-    for key, value in container_ins.items():
-        # if so, the position (in the ref_seq with gaps) has insertion under it
-        if key[0] == "-" and value != []:
-            
-            # add insertion under the real index (in ref_seq with no gaps)
-            container_ins_correct[key[1] - insertion_counter] = value
-            # adding 1 as due to the insertions which 'move' real indices forward
-            # incrementing after as first insertion is under the 'real', without 
-            # gaps index
-            insertion_counter += 1
-        elif key[0] == "-" and value == []:
-            insertion_counter += 1  # add 1 to counter, as gaps shift it as well
-
-    # adding lost indices from the ref with no gaps
-    for ind in range(len(ref)):
-        if ind not in container_ins_correct.keys():  # if index not in keys
-            # add it to the array with empty list
-            container_ins_correct[ind] = []
-    # sort by added indices
-    container_ins_correct = OrderedDict(
-        sorted(container_ins_correct.items(), key=lambda x: x[0]))
-    
-    df_ins = pd.DataFrame.from_dict(container_ins_correct, orient='index').T
-    df_ins.columns = columns
-    
-    return df_ins
-
-
 
 def _get_current_time():
     """just returns time stamp
@@ -353,13 +371,10 @@ def main():
                       Now this file is skipped
                        """.format(f))
             try:
-                df_dels = _create_df_dels(ref_seq, total_dels, f, cov)
-                df_ins = _create_df_ins(ref_seq, total_ins, f, cov)
+                df_dels = _create_df(ref_seq, total_dels)
+                df_ins = _create_df(ref_seq, total_ins)
                 df_cov = _create_df_cov(cov)
-                
-                
-                #df_dels, df_ins, df_cov = _create_df(ref_seq, total_dels,
-                                                # total_ins, f, cov)
+            
             except ValueError as valerr:
                 print("""
                       warning: it seems that the file {0}

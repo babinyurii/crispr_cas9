@@ -8,15 +8,10 @@ Created on Fri May 31 11:21:42 2019
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-sns.set(font_scale=1.5)
-
 import pandas as pd
-
 import datetime
-
 sns.set(font_scale=1.5)
 from time import time
-from xlrd import XLRDError
 from ipywidgets import IntProgress
 from IPython.display import display
 
@@ -38,6 +33,8 @@ def _create_bars(file_name, indel_matrix, indel):
     #perc_del_count = raw_del_count / cov * 100
 
     plt.bar(raw_del_count.index, raw_del_count)
+    
+    
     plt.xticks(list(range(len(raw_del_count))),
                list(range(1, len(raw_del_count)+1)))
 
@@ -134,8 +131,10 @@ def main():
             
         for f in input_sheets:
             try:
-                file_content = f.split("_")[-2]
-                indel_type = f.split("_")[-1]
+                file_name = f.rsplit(".", 1)[0]
+                file_content = file_name.split("_")[-2]
+                indel_type = file_name.split("_")[-1]
+                
                 indel_matrix = pd.read_excel("./output_matrices/" + f)
                 indel_matrix.index = indel_matrix["indel length"]
                 indel_matrix = indel_matrix.drop(columns=["indel length"])

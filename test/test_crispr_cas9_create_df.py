@@ -22,8 +22,8 @@ def test_count_indels_single_del_from_head():
     total_dels = count_indels._count_dels("13_df_dels.fasta", ref_seq, ref_seq_id, cov)
     total_ins = count_indels._count_ins("13_df_dels.fasta", ref_seq, ref_seq_id, cov)
     
-    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "13_df_dels.fasta", cov)
-    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "13_df_dels.fasta", cov)
+    df_dels = count_indels._create_df(ref_seq, total_dels)
+    df_ins = count_indels._create_df(ref_seq, total_ins)
     df_cov = count_indels._create_df_cov(cov)
     
     # we should use item() method to return Python scalar value
@@ -61,8 +61,8 @@ def test_count_indels_insertion_ladder_forward():
     total_dels = count_indels._count_dels("10_ins_ladder_forward.fasta", ref_seq, ref_seq_id, cov)
     total_ins = count_indels._count_ins("10_ins_ladder_forward.fasta", ref_seq, ref_seq_id, cov)
     
-    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "10_ins_ladder_forward.fasta", cov)
-    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "10_ins_ladder_forward.fasta", cov)
+    df_dels = count_indels._create_df(ref_seq, total_dels)
+    df_ins = count_indels._create_df(ref_seq, total_ins)
     df_cov = count_indels._create_df_cov(cov)
     
     

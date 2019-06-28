@@ -147,7 +147,6 @@ def test_count_indels_hang_from_head_various_len():
     assert total_dels[0][6] == 7
     assert total_dels[0][7] == 8
     assert total_dels[0][8] == 9
-    assert total_dels[0][9] == 10
     
     # all the other entries are empty
     assert total_dels[1] == []
@@ -183,7 +182,7 @@ def test_count_indels_hang_from_tail_various_len():
     total_ins = count_indels._count_ins("6_dels_hanging_from_tail_var_len.fasta", ref_seq, ref_seq_id, cov)
     
     
-    assert total_dels[0][0] == 10
+    #assert total_dels[0][0] == 10
     assert total_dels[1][0] == 9
     assert total_dels[2][0] == 8
     assert total_dels[3][0] == 7
@@ -195,7 +194,7 @@ def test_count_indels_hang_from_tail_various_len():
     assert total_dels[9][0] == 1
     
     # only one del at each entry
-    assert len(total_dels[0]) == 1
+    assert len(total_dels[0]) == 0
     assert len(total_dels[1]) == 1
     assert len(total_dels[2]) == 1
     assert len(total_dels[3]) == 1
@@ -284,33 +283,26 @@ def test_count_indels_single_insertions_from_head():
     
     
     assert total_ins[1][0] == 1
+    assert total_ins[2][0] == 1
     assert total_ins[3][0] == 1
+    assert total_ins[4][0] == 1
     assert total_ins[5][0] == 1
+    assert total_ins[6][0] == 1
     assert total_ins[7][0] == 1
+    assert total_ins[8][0] == 1
     assert total_ins[9][0] == 1
-    assert total_ins[11][0] == 1
-    assert total_ins[13][0] == 1
-    assert total_ins[15][0] == 1
-    assert total_ins[17][0] == 1
     
     assert len(total_ins[0]) == 0
     assert len(total_ins[1]) == 1
-    assert len(total_ins[2]) == 0
+    assert len(total_ins[2]) == 1
     assert len(total_ins[3]) == 1
-    assert len(total_ins[4]) == 0
+    assert len(total_ins[4]) == 1
     assert len(total_ins[5]) == 1
-    assert len(total_ins[6]) == 0
+    assert len(total_ins[6]) == 1
     assert len(total_ins[7]) == 1
-    assert len(total_ins[8]) == 0
+    assert len(total_ins[8]) == 1
     assert len(total_ins[9]) == 1
-    assert len(total_ins[10]) == 0
-    assert len(total_ins[11]) == 1
-    assert len(total_ins[12]) == 0
-    assert len(total_ins[13]) == 1
-    assert len(total_ins[14]) == 0
-    assert len(total_ins[15]) == 1
-    assert len(total_ins[16]) == 0
-    assert len(total_ins[17]) == 1
+   
     
     
     assert total_dels[0] == []
@@ -336,35 +328,26 @@ def test_count_indels_single_insertions_from_tail():
     total_ins = count_indels._count_ins("9_ins_single_ins_from_tail.fasta", ref_seq, ref_seq_id, cov)
     
     assert total_ins[1][0] == 1
+    assert total_ins[2][0] == 1
     assert total_ins[3][0] == 1
+    assert total_ins[4][0] == 1
     assert total_ins[5][0] == 1
+    assert total_ins[6][0] == 1
     assert total_ins[7][0] == 1
+    assert total_ins[8][0] == 1
     assert total_ins[9][0] == 1
-    assert total_ins[11][0] == 1
-    assert total_ins[13][0] == 1
-    assert total_ins[15][0] == 1
-    assert total_ins[17][0] == 1
     
     assert len(total_ins[0]) == 0
     assert len(total_ins[1]) == 1
-    assert len(total_ins[2]) == 0
+    assert len(total_ins[2]) == 1
     assert len(total_ins[3]) == 1
-    assert len(total_ins[4]) == 0
+    assert len(total_ins[4]) == 1
     assert len(total_ins[5]) == 1
-    assert len(total_ins[6]) == 0
+    assert len(total_ins[6]) == 1
     assert len(total_ins[7]) == 1
-    assert len(total_ins[8]) == 0
+    assert len(total_ins[8]) == 1
     assert len(total_ins[9]) == 1
-    assert len(total_ins[10]) == 0
-    assert len(total_ins[11]) == 1
-    assert len(total_ins[12]) == 0
-    assert len(total_ins[13]) == 1
-    assert len(total_ins[14]) == 0
-    assert len(total_ins[15]) == 1
-    assert len(total_ins[16]) == 0
-    assert len(total_ins[17]) == 1
-    
-    
+   
     assert total_dels[0] == []
     assert total_dels[1] == []
     assert total_dels[2] == []
@@ -387,32 +370,21 @@ def test_count_indels_insertions_var_lens_ladder_forward():
     total_dels = count_indels._count_dels("10_ins_ladder_forward.fasta", ref_seq, ref_seq_id, cov)
     total_ins = count_indels._count_ins("10_ins_ladder_forward.fasta", ref_seq, ref_seq_id, cov)
     
-    
+    #assert total_ins[0][0] == 0
     assert total_ins[1][0] == 1
-    assert total_ins[3][0] == 2
-    assert total_ins[6][0] == 3
-    assert total_ins[10][0] == 4
-    assert total_ins[15][0] == 3
+    assert total_ins[2][0] == 2
+    assert total_ins[3][0] == 3
+    assert total_ins[4][0] == 4
+    assert total_ins[5][0] == 3
     
+    # check if there's one insertion under each position
     assert len(total_ins[0]) == 0
     assert len(total_ins[1]) == 1
-    assert len(total_ins[2]) == 0
+    assert len(total_ins[2]) == 1
     assert len(total_ins[3]) == 1
-    assert len(total_ins[4]) == 0
-    assert len(total_ins[5]) == 0
-    assert len(total_ins[6]) == 1
-    assert len(total_ins[7]) == 0
-    assert len(total_ins[8]) == 0
-    assert len(total_ins[9]) == 0
-    assert len(total_ins[10]) == 1
-    assert len(total_ins[11]) == 0
-    assert len(total_ins[12]) == 0
-    assert len(total_ins[13]) == 0
-    assert len(total_ins[14]) == 0
-    assert len(total_ins[15]) == 1
-    assert len(total_ins[16]) == 0
-    assert len(total_ins[17]) == 0
-    assert len(total_ins[18]) == 0
+    assert len(total_ins[4]) == 1
+    assert len(total_ins[5]) == 1
+    
 
     assert total_dels[0] == []
     assert total_dels[1] == []
@@ -420,10 +392,7 @@ def test_count_indels_insertions_var_lens_ladder_forward():
     assert total_dels[3] == []
     assert total_dels[4] == []
     assert total_dels[5] == []
-    assert total_dels[6] == []
-    assert total_dels[7] == []
-    assert total_dels[8] == []
-    assert total_dels[9] == []    
+      
     
     
     
@@ -439,33 +408,21 @@ def test_count_indels_insertions_var_lens_ladder():
     
     assert total_ins[1][0] == 1
     assert total_ins[1][1] == 1
-    assert total_ins[3][0] == 2
-    assert total_ins[3][1] == 2
-    assert total_ins[6][0] == 3
-    assert total_ins[6][1] == 3
-    assert total_ins[10][0] == 4
-    assert total_ins[10][1] == 4
-    assert total_ins[15][0] == 3
+    assert total_ins[2][0] == 2
+    assert total_ins[2][1] == 2
+    assert total_ins[3][0] == 3
+    assert total_ins[3][1] == 3
+    assert total_ins[4][0] == 4
+    assert total_ins[4][1] == 4
+    assert total_ins[5][0] == 3
     
     assert len(total_ins[0]) == 0
     assert len(total_ins[1]) == 2
-    assert len(total_ins[2]) == 0
+    assert len(total_ins[2]) == 2
     assert len(total_ins[3]) == 2
-    assert len(total_ins[4]) == 0
-    assert len(total_ins[5]) == 0
-    assert len(total_ins[6]) == 2
-    assert len(total_ins[7]) == 0
-    assert len(total_ins[8]) == 0
-    assert len(total_ins[9]) == 0
-    assert len(total_ins[10]) == 2
-    assert len(total_ins[11]) == 0
-    assert len(total_ins[12]) == 0
-    assert len(total_ins[13]) == 0
-    assert len(total_ins[14]) == 0
-    assert len(total_ins[15]) == 1
-    assert len(total_ins[16]) == 0
-    assert len(total_ins[17]) == 0
-    assert len(total_ins[18]) == 0
+    assert len(total_ins[4]) == 2
+    assert len(total_ins[5]) == 1
+    
     
     assert total_dels[0] == []
     assert total_dels[1] == []
@@ -473,86 +430,6 @@ def test_count_indels_insertions_var_lens_ladder():
     assert total_dels[3] == []
     assert total_dels[4] == []
     assert total_dels[5] == []
-    assert total_dels[6] == []
-    assert total_dels[7] == []
-    assert total_dels[8] == []
-    assert total_dels[9] == [] 
-    
-
-def test_count_indels_dels_and_ins():
-    #ref_seq, total_dels, total_ins, cov  = count_indels._count_indels("12_dels_and_ins.fasta")
-    
-    ref_seq, ref_seq_id = count_indels._get_ref_seq("12_dels_and_ins.fasta")
-    cov = count_indels._get_coverage("12_dels_and_ins.fasta")
-    total_dels = count_indels._count_dels("12_dels_and_ins.fasta", ref_seq, ref_seq_id, cov)
-    total_ins = count_indels._count_ins("12_dels_and_ins.fasta", ref_seq, ref_seq_id, cov)
-    
-    
-    
-    assert total_dels[0][0] == 1
-    assert total_dels[1] == []
-    assert total_dels[2][0] == 1
-    assert total_dels[3] == []
-    assert total_dels[4] == []
-    assert total_dels[5][0] == 1
-    assert total_dels[6] == []
-    assert total_dels[7] == []
-    assert total_dels[8] == []
-    assert total_dels[9][0] == 1
-    
-    assert total_ins[0] == []
-    assert total_ins[1][0] == 1
-    assert total_ins[2] == []
-    assert total_ins[3][0] == 2
-    assert total_ins[4] == []
-    assert total_ins[5] == []
-    assert total_ins[6][0] == 3
-    assert total_ins[7] == []
-    assert total_ins[8] == []
-    assert total_ins[9] == []
-    
-    assert len(total_dels[0]) == 1
-    assert len(total_dels[2]) == 1
-    assert len(total_dels[5]) == 1
-    assert len(total_dels[9]) == 1
-    assert len(total_ins[1]) == 1
-    assert len(total_ins[3]) == 1
-    assert len(total_ins[6]) == 1
-
-
-
-
-
-
-
-
-"""
-just to have visual representation of the test data
-"""
-
-#print("=========== single from head : dels_single_del_from_head.fasta =============")
-#ref_seq, total_dels, total_ins, cov  = count_indels._count_indels("1_dels_single_del_from_head.fasta")
-#print(total_dels)
-#print(total_ins)
-
-
-#print("=========== 12_dels_and_ins.fasta =============")
-#ref_seq, total_dels, total_ins, cov  = count_indels._count_indels("12_dels_and_ins.fasta")
-#print(total_dels)
-#print(total_ins)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

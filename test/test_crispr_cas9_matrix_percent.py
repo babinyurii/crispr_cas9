@@ -23,8 +23,8 @@ def test_create_plots_create_matrix_deletion_raw_count():
     total_ins = count_indels._count_ins("15_dels_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
     
     
-    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "15_dels_ladder_for_matrix.fasta", cov)
-    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "15_dels_ladder_for_matrix.fasta", cov)
+    df_dels = count_indels._create_df(ref_seq, total_dels)
+    df_ins = count_indels._create_df(ref_seq, total_ins)
     df_cov = count_indels._create_df_cov(cov)
     
     count_indels._save_df(df_dels, df_ins, df_cov, "15_dels_ladder_for_matrix.fasta")
@@ -124,8 +124,8 @@ def test_create_plots_create_matrix_deletion_percent():
     total_ins = count_indels._count_ins("15_dels_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
     
 
-    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "15_dels_ladder_for_matrix.fasta", cov)
-    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "15_dels_ladder_for_matrix.fasta", cov)
+    df_dels = count_indels._create_df(ref_seq, total_dels)
+    df_ins = count_indels._create_df(ref_seq, total_ins)
     df_cov = count_indels._create_df_cov(cov)
     
     count_indels._save_df(df_dels, df_ins, df_cov, "15_dels_ladder_for_matrix.fasta")
@@ -226,8 +226,8 @@ def test_create_plots_create_matrix_insertions_raw_count():
     total_ins = count_indels._count_ins("16_ins_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
     
     
-    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "16_ins_ladder_for_matrix.fasta", cov)
-    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "16_ins_ladder_for_matrix.fasta", cov)
+    df_dels = count_indels._create_df(ref_seq, total_dels)
+    df_ins = count_indels._create_df(ref_seq, total_ins)
     df_cov = count_indels._create_df_cov(cov)
     
     count_indels._save_df(df_dels, df_ins, df_cov, "16_ins_ladder_for_matrix.fasta")
@@ -286,8 +286,8 @@ def test_create_plots_create_matrix_insertions_percent():
     total_dels = count_indels._count_dels("16_ins_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
     total_ins = count_indels._count_ins("16_ins_ladder_for_matrix.fasta", ref_seq, ref_seq_id, cov)
     
-    df_dels = count_indels._create_df_dels(ref_seq, total_dels, "16_ins_ladder_for_matrix.fasta", cov)
-    df_ins = count_indels._create_df_ins(ref_seq, total_ins, "16_ins_ladder_for_matrix.fasta", cov)
+    df_dels = count_indels._create_df(ref_seq, total_dels)
+    df_ins = count_indels._create_df(ref_seq, total_ins)
     df_cov = count_indels._create_df_cov(cov)
     
     count_indels._save_df(df_dels, df_ins, df_cov, "16_ins_ladder_for_matrix.fasta")
