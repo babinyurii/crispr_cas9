@@ -21,17 +21,7 @@ IMPORTANT NOTES:
     if reference sequence starts or ends with gap, the scrips will throw: 
     'ValueError: Length mismatch: Expected axis has N elements, 
     new values have n elements'. This is the pandas exception concerning indices.
-
-to use the script:
-    1. create folder 'input_data' in the current directory and paste 'fasta' files into it
-    2. import script into the current directory using Jupyter or whatever and run it:
-        1) from crispr_count_indels import run_count_indels
-        run_count_indels()
-        2) %run crispr_count_indels.py
-    or put the script into the current directory and run via shell:
-    python run_count_indels.py
-
-NOTE: to speed up the exection instead of 'SeqIO.parse()
+NOTE: to speed up the execution instead of 'SeqIO.parse()
 low level fasta parser 'SimpleFastaParser' is used 
 """
 
@@ -47,25 +37,35 @@ NUCLEOTIDES = ["A", "T", "G", "C"]
 
 
 def _get_coverage(input_file):
+    """counts number of reads in fasta
+    """
     read_counter = 0
     with open("./input_data/" + input_file) as in_handle:
         for record in SimpleFastaParser(in_handle):
             read_counter += 1
-    # 1- without reference        
+    # 1- without reference
+    
     return read_counter - 1
 
+
 def _get_ref_seq(input_file):
+    """extracts first record from fasta
+    which must be a reference
+    """
     # low level parser returns tuple of id and sequence
     with open("./input_data/" + input_file) as in_handle:
         for title, seq in SimpleFastaParser(in_handle):
             ref_seq = seq
             ref_seq_id = title
             break
+        
     return ref_seq, ref_seq_id
 
 
-    
 def _split_gaps_from_pairs(ref_seq, seq):
+    """cuts out pairs ("-", "-") from zipped
+    reference and read sequences
+    """
     pairs_ref_and_seq = list(zip(ref_seq, seq))
     pairs_gaps_cut = []
     for i in pairs_ref_and_seq:
@@ -75,13 +75,13 @@ def _split_gaps_from_pairs(ref_seq, seq):
             continue
         else:
             pairs_gaps_cut.append(i)
-    
-    return pairs_gaps_cut  
 
+    return pairs_gaps_cut
 
 
 def _split_ins_from_pairs(pairs_gaps_cut):
-    
+    """cuts out pairs ("-", some_nuc) from 
+    zipped pairs"""
     pairs_ins_cut = []
     for i in pairs_gaps_cut:
         # skip insertions, as they shift true indexing
@@ -89,33 +89,34 @@ def _split_ins_from_pairs(pairs_gaps_cut):
             continue
         else:
             pairs_ins_cut.append(i)
-    
+
     return pairs_ins_cut
-    
+
 
 def _get_ref_array(ref_seq):
     """creates nested list of length equal 
-    to reference sequence
-    all gaps are cut off from reference
+    to reference sequence with
+    all gaps cut off from reference
     """
     splitted_ref_seq = ref_seq.split("-")
     ref_true = "".join(splitted_ref_seq)
     ref_array = [[] for i in ref_true]
-    
+
     return ref_array
-    
+
 
 def _get_indel_start_positions(seq):
-    
+    """creates list of indices which
+    are indels start positions"""
     indel_positions = []
     indel_stop_index = 0
-    
+
     for nuc_index in range(len(seq)):
         # as we can't change index of the next item in iteration
         # we skip nuc_index, until the indel stop index
         if nuc_index < indel_stop_index:
             continue
-        
+
         # indel starts : "-"
         elif seq[nuc_index] == "-":
             indel_positions.append(nuc_index)
@@ -124,10 +125,10 @@ def _get_indel_start_positions(seq):
                 # it count like "A------" seq
                 # considering all the gap till the end as true indel
                 if seq[nuc_indel_index] == "-" and \
-                nuc_indel_index == len(seq) -1:
+                        nuc_indel_index == len(seq) - 1:
                     indel_stop_index = nuc_indel_index + 1
                     break
-                # indel continues: "-", skip 
+                # indel continues: "-", skip
                 elif seq[nuc_indel_index] == "-":
                     continue
                 # we encounter nucleotide, so, indel ends
@@ -135,111 +136,110 @@ def _get_indel_start_positions(seq):
                 elif seq[nuc_indel_index] in NUCLEOTIDES:
                     indel_stop_index = nuc_indel_index
                     break
-        
+
     return indel_positions
 
 
-
-def _count_indel_lens(seq_to_count_dels, del_start_positions):
-    
-    pos_and_len = {k : None for k in del_start_positions}
+def _count_indel_lens(seq_to_count_indels, indels_start_positions):
+    """creates dictionary with positions as keys, and indels lengths 
+    as values
+    """
+    pos_and_len = {k: None for k in indels_start_positions}
     indel_len_counter = 0
-    
-    for pos in del_start_positions:
-         
-        for nuc_index in range(pos, len(seq_to_count_dels)):
-           
+
+    for pos in indels_start_positions:
+
+        for nuc_index in range(pos, len(seq_to_count_indels)):
+
             # catching single indel under the last nuc
-            if seq_to_count_dels[nuc_index] == "-" and \
-                nuc_index == len(seq_to_count_dels) - 1:
+            if seq_to_count_indels[nuc_index] == "-" and \
+                    nuc_index == len(seq_to_count_indels) - 1:
                 indel_len_counter += 1
                 pos_and_len[pos] = indel_len_counter
-                break   
-            
-            elif seq_to_count_dels[nuc_index] == "-":
+                break
+
+            elif seq_to_count_indels[nuc_index] == "-":
                 indel_len_counter += 1
-            
+
             # indel ends
-            elif seq_to_count_dels[nuc_index] in NUCLEOTIDES:
+            elif seq_to_count_indels[nuc_index] in NUCLEOTIDES:
                 pos_and_len[pos] = indel_len_counter
                 indel_len_counter = 0
                 break
-    
+
     return pos_and_len
 
 
-
 def _seq_has_gaps_only(seq):
-    
+
     if all(nuc == "-" for nuc in seq):
         result = True
     else:
         result = False
-    
+
     return result
 
 
-
 def _write_read_into_fasta(input_file, record, writ_mode):
-    
+
     if not os.path.exists("./output_ids"):
         os.mkdir("output_ids")
     seq_file_id_name = "output_ids/" + "seq_ids_" + input_file
-    
+
     with open(seq_file_id_name, writ_mode) as handle:
         handle.write(">" + record[0] + "\n" + record[1] + "\n")
 
 
+def _count_dels(input_file, ref_seq, ref_seq_id, cov):
 
-def _count_dels(input_file, ref_seq, ref_seq_id, cov):    
-    
     total_dels = _get_ref_array(ref_seq)
-    
+
     with open("./input_data/" + input_file) as in_handle:
-        
+
         reads = SimpleFastaParser(in_handle)
         for record in reads:
             # skip first record as it's a reference
             if record[0] == ref_seq_id:
+                # write reference into file with reads containing indels
                 _write_read_into_fasta(input_file, record, "a")
                 continue
-                
+
             read = record[1]
-            pairs_gaps_cut =_split_gaps_from_pairs(ref_seq, read)
-            
+            # pairs of nuc from ref and read without gaps ("-", "-")
+            pairs_gaps_cut = _split_gaps_from_pairs(ref_seq, read)
+
             # this step is needed for dels
-            # as insertions shift indexing forward 
+            # as insertions shift indexing forward
             pairs_ins_cut = _split_ins_from_pairs(pairs_gaps_cut)
-            
+
             # take read, not ref - different from insertions counting
             seq_to_count = [x[1] for x in pairs_ins_cut]
             seq_to_count_dels = "".join(seq_to_count)
-            
+
             # skip if read has noly gaps. it's not valid to count
             if _seq_has_gaps_only(seq_to_count_dels):
                 continue
-            
-            dels_start_positions = _get_indel_start_positions(seq_to_count_dels)
-            
-            
+
+            dels_start_positions = _get_indel_start_positions(
+                seq_to_count_dels)
+
             dels_pos_and_lens = _count_indel_lens(seq_to_count_dels,
-                                               dels_start_positions)
-            
-            if not all(value == None for key,value in dels_pos_and_lens.items()):
-                 _write_read_into_fasta(input_file, record, "a+")
-    
+                                                  dels_start_positions)
+
+            # writing reads containing indels into a file
+            if not all(value == None for key, value in dels_pos_and_lens.items()):
+                _write_read_into_fasta(input_file, record, "a+")
+
             for key, value in dels_pos_and_lens.items():
                 total_dels[key].append(value)
-                
-          
-    
-    return total_dels        
+
+    return total_dels
 
 
 def _count_ins(input_file, ref_seq, ref_seq_id, cov):
-        
+
     total_ins = _get_ref_array(ref_seq)
-    
+
     with open("./input_data/" + input_file) as in_handle:
         reads = SimpleFastaParser(in_handle)
         for record in reads:
@@ -247,22 +247,22 @@ def _count_ins(input_file, ref_seq, ref_seq_id, cov):
                 continue
 
             read = record[1]
-            pairs_gaps_cut =_split_gaps_from_pairs(ref_seq, read)
-            
+            pairs_gaps_cut = _split_gaps_from_pairs(ref_seq, read)
+
             # take reference, not read. different from deletions counting
             seq_to_count = [x[0] for x in pairs_gaps_cut]
             seq_to_count_ins = "".join(seq_to_count)
-            
+
             # skip if read has noly gaps. it's not valid to count
             if _seq_has_gaps_only(seq_to_count_ins):
                 continue
-            
+
             ins_start_positions = _get_indel_start_positions(seq_to_count_ins)
-            
+
             ins_pos_and_lens = _count_indel_lens(seq_to_count_ins,
-                                               ins_start_positions)
-            
-            if not all(value == None for key,value in ins_pos_and_lens.items()):
+                                                 ins_start_positions)
+
+            if not all(value == None for key, value in ins_pos_and_lens.items()):
                 _write_read_into_fasta(input_file, record, "a+")
 
             correct_ins_pos_and_lens = {}
@@ -270,33 +270,35 @@ def _count_ins(input_file, ref_seq, ref_seq_id, cov):
             for key, value in ins_pos_and_lens.items():
                 correct_ins_pos_and_lens[key - len_correction] = value
                 len_correction += value
-                
+
             for key, value in correct_ins_pos_and_lens.items():
                 total_ins[key].append(value)
-    
-    return total_ins        
-              
+
+    return total_ins
+
 
 def _create_df_cov(cov):
     df_cov = pd.DataFrame.from_dict({"coverage": cov}, orient='index').T
     return df_cov
 
+
 def _create_df(ref_seq, total_indels):
-    
+
     ref_no_gaps = ref_seq.split("-")
     ref = "".join(ref_no_gaps)
     columns = list(zip(ref, range(1, len(ref) + 1)))
     indel_df = pd.DataFrame(total_indels).T
     indel_df.columns = columns
-    
+
     return indel_df
-    
+
 
 def _get_current_time():
     """just returns time stamp
     """
     time_stamp = datetime.datetime.fromtimestamp(
         time()).strftime('%Y-%m-%d %H:%M:%S')
+    
     return time_stamp
 
 
@@ -313,7 +315,7 @@ def _save_df(df_dels, df_ins, df_cov, file_name):
     df_cov.to_excel(writer, "coverage")
 
     writer.save()
-   
+
 
 def _show_report(total_time, file_counter):
     """prints out very brief report 
@@ -342,23 +344,24 @@ def main():
     """
     start_time = time()
     file_counter = 0
-    
+
     print("""
     ---------------
     job started at {0} ...
     ---------------
     """.format(_get_current_time()))
-    
+
     extensions = ["fasta", "fa", "fas"]
     if os.path.exists("./input_data"):
         input_files = os.listdir("./input_data")
-        input_files = [f for f in input_files if f.rsplit(".", 1)[-1] in extensions]
-        
+        input_files = [f for f in input_files if f.rsplit(
+            ".", 1)[-1] in extensions]
+
         num_files = len(input_files)
         progress_bar = IntProgress(min=0, max=num_files, bar_style='success')
         display(progress_bar)
-        
-        for f in input_files:            
+
+        for f in input_files:
             try:
                 ref_seq, ref_seq_id = _get_ref_seq(f)
                 cov = _get_coverage(f)
@@ -374,7 +377,7 @@ def main():
                 df_dels = _create_df(ref_seq, total_dels)
                 df_ins = _create_df(ref_seq, total_ins)
                 df_cov = _create_df_cov(cov)
-            
+
             except ValueError as valerr:
                 print("""
                       warning: it seems that the file {0}
@@ -390,14 +393,14 @@ def main():
                       To process the corresponding 'fasta' file, rerun the script
                       now this file is skipped. error: {1}
                       """.format(f, permerr))
-            
+
             progress_bar.value += 1
-            file_counter += 1 
-                
+            file_counter += 1
+
         finish_time = time()
         total_time = finish_time - start_time
         _show_report(total_time, file_counter)
-    
+
     else:
         os.mkdir("input_data")
         print(

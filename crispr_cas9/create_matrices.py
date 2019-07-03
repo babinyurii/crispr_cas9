@@ -1,22 +1,5 @@
 # -*- coding: utf-8 -*-
 
-""" crispr_create_plots.py
-this script creates bar charts and heatmaps using 
-output excel spreadsheets made by 'crispr_count_indels.py'.
-bar charts show percent of reads with indels irrespective of the indel length
-and give general overview of the data
-heatmaps show exact number of indels and their length
-
-to use the script:
-    1. create folder 'input_data' in the current directory and paste 'fasta' files into it
-    2. import script into the current directory using Jupyter run it:
-        a) from run_count_indels import run_count_indels
-        run_count_indels()
-        b) %run crispr_create_plots.py
-    or put the script into the current directory and run via shell:
-    python run_create_plots.py
-"""
-
 import datetime
 import numpy as np
 import pandas as pd
@@ -26,7 +9,6 @@ from time import time
 from xlrd import XLRDError
 from ipywidgets import IntProgress
 from IPython.display import display
-
 
 
 def _get_coverage_from_excel(file_name):
@@ -47,21 +29,19 @@ def _get_current_time():
 
 
 def _save_indel_count_matrix(file_name, indel_matrix, indel):
-    
+
     writer = pd.ExcelWriter("./output_matrices/" + file_name.rsplit(".", 1)[0]
-                            + '_matrix_count_' + indel  + '.xlsx')
+                            + '_matrix_count_' + indel + '.xlsx')
     indel_matrix.index.name = "indel length"
     indel_matrix.to_excel(writer)
 
 
-
 def _save_indel_percent_matrix(file_name, indel_matrix_percent, indel):
-    
+
     writer = pd.ExcelWriter("./output_matrices/" + file_name.rsplit(".", 1)[0]
-                            + '_matrix_percent_' + indel  + '.xlsx')
+                            + '_matrix_percent_' + indel + '.xlsx')
     indel_matrix_percent.index.name = "indel length"
     indel_matrix_percent.to_excel(writer)
-
 
 
 def _create_matrix(file_name, indel):
@@ -82,7 +62,7 @@ def _create_matrix(file_name, indel):
             d[length] = indels_total.count(length)
         container.append(d)
 
-        indel_matrix = pd.DataFrame(container) 
+        indel_matrix = pd.DataFrame(container)
 
         # adding missing values to df columns with empty values
         # as we don't have all lengths of indels
@@ -97,7 +77,7 @@ def _create_matrix(file_name, indel):
     indel_matrix.sort_index(axis=0, ascending=False, inplace=True)
     indel_matrix.columns = df_indels.columns
     indel_matrix = indel_matrix.fillna(value=0)
-    
+
     return indel_matrix
 
 
@@ -108,8 +88,9 @@ def _create_matrix_percent(file_name, indel_matrix, cov, indel):
     for ind in indel_matrix.index:
         for col in indel_matrix.columns:
             indel_matrix.loc[ind, col] = indel_matrix.loc[ind, col] / cov * 100
-    
-    return indel_matrix 
+
+    return indel_matrix
+
 
 def _show_report(total_time, file_counter):
     """prints out very brief report 
@@ -145,13 +126,14 @@ def main():
     """.format(_get_current_time()))
 
     indel_type = ["deletions", "insertions"]
-    
+
     if not os.path.exists("./output_matrices"):
         os.mkdir("output_matrices")
-    
+
     if os.path.exists("./output_indels"):
         input_sheets = os.listdir("./output_indels")
-        input_sheets = [f for f in input_sheets if f.rsplit(".", 1)[-1] == "xlsx"]
+        input_sheets = [
+            f for f in input_sheets if f.rsplit(".", 1)[-1] == "xlsx"]
 
         num_files = len(input_sheets)
         progress_bar = IntProgress(min=0, max=num_files, bar_style='success')
@@ -167,12 +149,11 @@ def main():
                 try:
                     indel_matrix = _create_matrix(f, indel)
                     _save_indel_count_matrix(f, indel_matrix, indel)
-                    
+
                     matrix_percent = _create_matrix_percent(f, indel_matrix,
                                                             cov, indel)
                     _save_indel_percent_matrix(f, matrix_percent, indel)
-                    
-                    
+
                 except PermissionError as perr:
                     print("""
                           warning: perhaps the excel spreadsheet is open in excel. 
