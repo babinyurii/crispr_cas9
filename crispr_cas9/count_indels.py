@@ -373,6 +373,8 @@ def main():
                       application which doesn't allow it to be processed
                       Now this file is skipped
                        """.format(f))
+            except IndexError as inderr:
+                print("something wrong with {0}, error: {1}".format(f, inderr))
             try:
                 df_dels = _create_df(ref_seq, total_dels)
                 df_ins = _create_df(ref_seq, total_ins)

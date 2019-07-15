@@ -16,11 +16,11 @@ setup(
   download_url = 'https://github.com/babinyurii/crispr_cas9/archive/v_0.3.tar.gz',
   keywords = ['bioinformatics', 'indels', 'sequencing', 'NGS'],   
   install_requires=[            
-          'pandas==0.23.0',
-          'biopython==1.73',
-          'matplotlib==2.2.2',
-          'numpy==1.11.3',
-          'seaborn==0.8.1'
+          'pandas',
+          'biopython',
+          'matplotlib',
+          'numpy',
+          'seaborn'
       ],
   classifiers=[
     'Development Status :: 4 - Beta',      
