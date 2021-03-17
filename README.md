@@ -8,6 +8,9 @@ pip install crispr_cas9
 ## Usage
 `crispr_cas9` is intended to be used in Jupyter Notebook. Create folder named `input_data` and put your fastas into it. Navigate into the directory which contains the `input_data` folder. Then import the package :
 
+```python
+import crispr_cas9
+```
 and run :
 ```python
 %run -m crispr_cas9.count_indels
