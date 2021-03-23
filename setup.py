@@ -13,7 +13,7 @@ setup(
   author = 'Yuriy Babin',                  
   author_email = 'babin.yurii@gmail.com',      
   url = 'https://github.com/babinyurii/crispr_cas9', 
-  download_url = 'https://github.com/babinyurii/crispr_cas9/archive/refs/tags/v_0.3.2.tar.gz',
+  download_url = 'https://github.com/babinyurii/crispr_cas9/archive/refs/tags/v_0.3.2.1.tar.gz',
   keywords = ['bioinformatics', 'indels', 'sequencing', 'NGS'],   
   install_requires=[            
           'pandas',
