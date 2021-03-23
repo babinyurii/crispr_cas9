@@ -7,7 +7,7 @@ import setuptools
 setup(
   name = 'crispr_cas9',
   packages = ['crispr_cas9'],   
-  version = '0.3',      
+  version = '0.4',      
   license='MIT',        
   description = 'script for indels counting in sequencing data',   
   author = 'Yuriy Babin',                  
@@ -16,11 +16,11 @@ setup(
   download_url = 'https://github.com/babinyurii/crispr_cas9/archive/v_0.3.tar.gz',
   keywords = ['bioinformatics', 'indels', 'sequencing', 'NGS'],   
   install_requires=[            
-          'pandas',
-          'biopython',
-          'matplotlib',
-          'numpy',
-          'seaborn'
+          'pandas==0.23.4',
+          'biopython==1.73',
+          'matplotlib==3.0.2',
+          'numpy==1.15.4',
+          'seaborn==0.9.0'
       ],
   classifiers=[
     'Development Status :: 4 - Beta',      
