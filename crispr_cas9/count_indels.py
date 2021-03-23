@@ -310,6 +310,21 @@ def _save_df(df_dels, df_ins, df_cov, file_name):
 
     file_name = file_name.rsplit(".", 1)[0]
     writer = pd.ExcelWriter("./output_indels/" + file_name + '.xlsx')
+    
+    ############################################
+    # quick and dirty fix for reads that do not 
+    # completely overlap the reference
+    # easier to delete the data from the first and the last columns
+    df_dels[df_dels.columns[0]] = None
+    df_dels[df_dels.columns[-1]] = None
+    df_ins[df_ins.columns[0]] = None
+    df_ins[df_ins.columns[-1]] = None
+    ###############################################
+    # deleting empty rows
+    df_dels.dropna(axis=0, how="all", inplace=True)
+    df_ins.dropna(axis=0, how="all", inplace=True)
+    #############################################
+    
     df_dels.to_excel(writer, "deletions")
     df_ins.to_excel(writer, "insertions")
     df_cov.to_excel(writer, "coverage")
@@ -371,8 +386,8 @@ def main():
                 print("""
                       warning: It seems that the file'{0}' is open in some other 
                       application which doesn't allow it to be processed
-                      Now this file is skipped
-                       """.format(f))
+                      Now this file is skipped: {1}
+                       """.format(f, permerr))
             except IndexError as inderr:
                 print("something wrong with {0}, error: {1}".format(f, inderr))
             try:

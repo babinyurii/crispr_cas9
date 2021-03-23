@@ -33,16 +33,23 @@ def _save_indel_count_matrix(file_name, indel_matrix, indel):
     writer = pd.ExcelWriter("./output_matrices/" + file_name.rsplit(".", 1)[0]
                             + '_matrix_count_' + indel + '.xlsx')
     indel_matrix.index.name = "indel length"
+    
+    
+    indel_matrix.drop(indel_matrix.columns[indel_matrix.columns.str.contains("Unnamed", case=False)],
+                     axis=1, inplace=True)
+    
     indel_matrix.to_excel(writer)
-
+    writer.save() #FIXED
 
 def _save_indel_percent_matrix(file_name, indel_matrix_percent, indel):
 
     writer = pd.ExcelWriter("./output_matrices/" + file_name.rsplit(".", 1)[0]
                             + '_matrix_percent_' + indel + '.xlsx')
     indel_matrix_percent.index.name = "indel length"
+    indel_matrix_percent.drop(indel_matrix_percent.columns[indel_matrix_percent.columns.str.contains("Unnamed", case=False)],
+                     axis=1, inplace=True)
     indel_matrix_percent.to_excel(writer)
-
+    writer.save() #FIXED
 
 def _create_matrix(file_name, indel):
     """
@@ -142,7 +149,7 @@ def main():
             try:
                 cov = _get_coverage_from_excel(f)
             except (PermissionError, KeyError, XLRDError) as e:
-                print("warning: coverage can't be derived from the file")
+                print("warning: coverage can't be derived from the file {0}, error {1}".format(f, e))
                 continue
 
             for indel in indel_type:
