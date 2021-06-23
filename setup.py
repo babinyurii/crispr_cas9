@@ -7,7 +7,7 @@ import setuptools
 setup(
   name = 'crispr_cas9',
   packages = ['crispr_cas9'],   
-  version = '0.3.3',      
+  version = '0.3.4',      
   license='MIT',        
   description = 'script for indels counting in sequencing data',   
   author = 'Yuriy Babin',                  
