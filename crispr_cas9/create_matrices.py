@@ -10,6 +10,9 @@ from xlrd import XLRDError
 from ipywidgets import IntProgress
 from IPython.display import display
 
+def _df_test(file_name):
+    df_test = pd.read_excel("./output_indels/" + file_name)
+    print(df_test)
 
 def _get_coverage_from_excel(file_name):
     """takes out coverage value from
@@ -56,7 +59,7 @@ def _create_matrix(file_name, indel):
     creates matrix (length of indel, position) = number of such indels
     """
     # creating matrix of rows:length of indel, columns:position in the sequence
-    df_indels = pd.read_excel("./output_indels/" + file_name, sheet_name=indel)
+    df_indels = pd.read_excel("./output_indels/" + file_name, sheet_name=indel, index_col=0)
 
     container = []
     for col in df_indels.columns:

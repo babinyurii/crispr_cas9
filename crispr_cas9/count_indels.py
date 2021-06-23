@@ -312,17 +312,33 @@ def _save_df(df_dels, df_ins, df_cov, file_name):
     writer = pd.ExcelWriter("./output_indels/" + file_name + '.xlsx')
     
     ############################################
-    # quick and dirty fix for reads that do not 
-    # completely overlap the reference
+    # quick and dirty fix1 for reads that do not 
+    # completely overlap the reference and s
     # easier to delete the data from the first and the last columns
     df_dels[df_dels.columns[0]] = None
     df_dels[df_dels.columns[-1]] = None
     df_ins[df_ins.columns[0]] = None
-    df_ins[df_ins.columns[-1]] = None
+    #df_ins[df_ins.columns[-1]] = None # insertion under the last nuc may exist
+    # end of fix1
+    ############################################
+    # fix2 for deletions, that start from the
+    # 2nd nuc and later
+    row_indexes = df_dels.index.values.tolist()
+    column_indexes = df_dels.columns.values.tolist()
+    ref_seq_len = len(column_indexes)
+        
+    for row_index in row_indexes:
+        for col_index in range(0, len(column_indexes)):
+            
+            del_len = df_dels.iloc[row_index, col_index] # iloc as loc throws AssertionError somehow, have no time to deep into details
+            if del_len == (ref_seq_len - col_index):
+                df_dels.iloc[row_index, col_index] = None
+    # end of fix2
     ###############################################
-    # deleting empty rows
+    # fix3 : clean the df after, deleting empty rows
     df_dels.dropna(axis=0, how="all", inplace=True)
     df_ins.dropna(axis=0, how="all", inplace=True)
+    # end of fix3
     #############################################
     
     df_dels.to_excel(writer, "deletions")
